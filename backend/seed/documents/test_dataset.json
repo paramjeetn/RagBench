@@ -1,0 +1,82 @@
+[
+  {
+    "question": "What is gradient descent and how does it work?",
+    "ground_truth": "Gradient descent is an iterative first-order optimization algorithm used to find the minimum of a differentiable function. It updates model parameters in the direction of the negative gradient using the rule θ = θ - α * ∇L(θ), where α is the learning rate. Variants include batch, stochastic (SGD), and mini-batch gradient descent."
+  },
+  {
+    "question": "How does backpropagation compute gradients in a neural network?",
+    "ground_truth": "Backpropagation applies the chain rule of calculus layer by layer, starting from the output and working backward. It has two phases: a forward pass where activations are computed and stored, and a backward pass where gradients are computed for each layer's weights using the chain rule. It is efficient because it reuses intermediate computations."
+  },
+  {
+    "question": "What is the difference between L1 and L2 regularization?",
+    "ground_truth": "L1 regularization (Lasso) adds the sum of absolute values of weights to the loss, encouraging sparsity where many weights become exactly zero. L2 regularization (Ridge) adds the sum of squared weights, encouraging small but non-zero weights. Elastic Net combines both L1 and L2 penalties."
+  },
+  {
+    "question": "Explain the bias-variance trade-off.",
+    "ground_truth": "The bias-variance trade-off describes the tension between a model's ability to fit training data (bias) and its sensitivity to training data fluctuations (variance). Total error decomposes into Bias² + Variance + Irreducible Noise. High bias leads to underfitting, high variance leads to overfitting."
+  },
+  {
+    "question": "What is overfitting and how can it be prevented?",
+    "ground_truth": "Overfitting occurs when a model memorizes training data including noise rather than learning the underlying pattern, resulting in high training accuracy but poor test performance. Prevention techniques include regularization (L1, L2), dropout, early stopping, and using more training data."
+  },
+  {
+    "question": "How does dropout regularization work?",
+    "ground_truth": "Dropout randomly sets a fraction (typically 20-50%) of neuron activations to zero during each forward pass in training. This prevents co-adaptation of neurons. At inference time, all neurons are active but weights are scaled by the dropout probability."
+  },
+  {
+    "question": "What is the purpose of PEP 8?",
+    "ground_truth": "PEP 8 is the official style guide for Python code. Its purpose is to improve the readability and consistency of Python code across the community. It covers conventions for indentation (4 spaces), line length (79 chars), naming (snake_case for functions, PascalCase for classes), imports, and whitespace."
+  },
+  {
+    "question": "How do type hints work in Python?",
+    "ground_truth": "Type hints (PEP 484) provide optional static type annotations for Python code. They enable better IDE support, catch bugs before runtime, and serve as documentation. Features include built-in generics (list[int]), optional types (str | None), TypeVar, and Protocol for structural subtyping. They have zero runtime overhead."
+  },
+  {
+    "question": "What are virtual environments in Python and why are they used?",
+    "ground_truth": "Virtual environments create isolated Python installations that prevent dependency conflicts between projects. They are created with python -m venv .venv and activated with source .venv/bin/activate. Modern alternatives include Poetry, uv (fast Rust-based manager), and conda."
+  },
+  {
+    "question": "What are the key features of pytest?",
+    "ground_truth": "pytest is the de facto standard Python testing framework. Features include automatic test discovery, powerful assertion introspection, fixtures for setup/teardown, parametrize decorator for running tests with multiple inputs, and a rich plugin ecosystem. Tests should follow the Arrange-Act-Assert pattern."
+  },
+  {
+    "question": "What HTTP methods are used in REST APIs and what do they do?",
+    "ground_truth": "REST APIs use standard HTTP methods: GET (retrieve, safe and idempotent), POST (create, not idempotent), PUT (replace entire resource, idempotent), PATCH (partial update), and DELETE (remove, idempotent). URLs should use plural nouns and be hierarchical."
+  },
+  {
+    "question": "What is the difference between 401 and 403 HTTP status codes?",
+    "ground_truth": "401 Unauthorized means authentication is required but was not provided or is invalid. 403 Forbidden means the authenticated user does not have permission for the requested action. 401 is about identity, 403 is about authorization."
+  },
+  {
+    "question": "What are the differences between offset-based and cursor-based pagination?",
+    "ground_truth": "Offset-based pagination uses page and page_size parameters but has performance issues with large offsets since the database must scan and skip preceding rows. Cursor-based pagination uses an opaque cursor token (typically Base64-encoded sort key) and is more performant because the database can seek directly to the cursor position."
+  },
+  {
+    "question": "How does API versioning work and what are common strategies?",
+    "ground_truth": "API versioning allows introducing breaking changes without disrupting existing clients. Common strategies include URL path versioning (/api/v1/users), header versioning (Accept header), and query parameter versioning. Best practices include supporting previous versions for 6-12 months and documenting breaking changes."
+  },
+  {
+    "question": "How do CNNs process images?",
+    "ground_truth": "CNNs apply learnable filters (kernels) that slide across the input to detect local patterns such as edges, textures, and shapes. Key components include convolutional layers for local feature detection, pooling layers for spatial dimension reduction, and fully connected layers for final classification. Parameter sharing makes CNNs parameter-efficient."
+  },
+  {
+    "question": "What is the attention mechanism in transformers?",
+    "ground_truth": "The attention mechanism computes a weighted sum of value vectors, where weights are derived from the compatibility (dot product) between query and key vectors divided by the square root of the dimension. Multi-head attention runs multiple attention operations in parallel, allowing the model to attend to information from different representation subspaces."
+  },
+  {
+    "question": "What is transfer learning and why is it effective?",
+    "ground_truth": "Transfer learning reuses a model pre-trained on a large dataset as the starting point for a related task. Fine-tuning updates some or all pre-trained weights on the new task's data. It is effective because early layers learn general features that transfer well across tasks."
+  },
+  {
+    "question": "What is batch normalization and what are its benefits?",
+    "ground_truth": "Batch normalization normalizes activations within each mini-batch to have zero mean and unit variance, then applies a learned scale and shift. Benefits include faster training convergence, ability to use higher learning rates, and mild regularization. It reduces internal covariate shift."
+  },
+  {
+    "question": "What is the vanishing gradient problem and how is it addressed?",
+    "ground_truth": "The vanishing gradient problem occurs when gradients become extremely small as they are propagated back through many layers or time steps, causing earlier layers to learn very slowly or stop learning. Solutions include ReLU activation functions, LSTM/GRU architectures for RNNs, residual connections, and batch normalization."
+  },
+  {
+    "question": "What are common API authentication methods?",
+    "ground_truth": "Common API authentication methods include API Keys (simple tokens in headers, best for server-to-server), OAuth 2.0 (delegated authorization with multiple flows), and JWT (self-contained tokens with claims that can be validated without database lookups). Security best practices include always using HTTPS, rate limiting, input validation, and CORS headers."
+  }
+]

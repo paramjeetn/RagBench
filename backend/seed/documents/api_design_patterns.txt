@@ -1,0 +1,96 @@
+API Design Patterns
+
+REST Conventions
+================
+
+REST (Representational State Transfer) is an architectural style for designing web APIs. RESTful APIs organize resources around nouns (not verbs) and use standard HTTP methods to perform operations:
+
+- GET: Retrieve a resource or collection. Must be safe (no side effects) and idempotent (same result on repeat calls). Example: GET /api/users/123 returns user 123's data.
+- POST: Create a new resource. Not idempotent — each call may create a new resource. Example: POST /api/users with a JSON body creates a new user.
+- PUT: Replace an entire resource. Idempotent — sending the same request twice has the same effect as once. Example: PUT /api/users/123 replaces all fields of user 123.
+- PATCH: Partially update a resource. Only sends the fields that need to change. Example: PATCH /api/users/123 with {"email": "new@example.com"} updates just the email.
+- DELETE: Remove a resource. Idempotent. Example: DELETE /api/users/123 removes user 123.
+
+URL structure should be hierarchical and use plural nouns: /api/users, /api/users/123, /api/users/123/orders. Avoid verbs in URLs — the HTTP method already indicates the action.
+
+HTTP Status Codes
+================
+
+Status codes communicate the result of an API request. Proper usage is critical for API usability:
+
+2xx Success:
+- 200 OK: Request succeeded. Used for GET, PUT, PATCH responses.
+- 201 Created: A new resource was successfully created. Used for POST responses. Should include a Location header pointing to the new resource.
+- 204 No Content: Request succeeded but there is no response body. Common for DELETE responses.
+
+3xx Redirection:
+- 301 Moved Permanently: The resource has a new permanent URL.
+- 304 Not Modified: The cached version is still valid (used with conditional requests).
+
+4xx Client Errors:
+- 400 Bad Request: The request body or parameters are malformed or invalid.
+- 401 Unauthorized: Authentication is required but was not provided or is invalid.
+- 403 Forbidden: The authenticated user does not have permission for this action.
+- 404 Not Found: The requested resource does not exist.
+- 409 Conflict: The request conflicts with the current state of the resource (e.g., duplicate email).
+- 422 Unprocessable Entity: The request is well-formed but contains semantic errors (often used for validation failures).
+- 429 Too Many Requests: Rate limit exceeded. Should include a Retry-After header.
+
+5xx Server Errors:
+- 500 Internal Server Error: An unexpected error occurred on the server.
+- 502 Bad Gateway: The server received an invalid response from an upstream server.
+- 503 Service Unavailable: The server is temporarily unable to handle the request (maintenance, overload).
+
+Pagination
+================
+
+APIs that return collections must implement pagination to avoid returning unbounded result sets. Common patterns:
+
+Offset-based pagination: Uses page and page_size (or offset and limit) query parameters. Example: GET /api/users?page=2&page_size=20 returns users 21-40. Simple to implement but has performance issues with large offsets — the database must scan and skip all preceding rows.
+
+Cursor-based pagination: Uses an opaque cursor token that points to a specific position in the result set. Example: GET /api/users?cursor=eyJpZCI6MTAwfQ&limit=20. The cursor is typically a Base64-encoded representation of the last item's sort key. More performant than offset-based for large datasets because the database can seek directly to the cursor position. The response includes a next_cursor field for fetching the next page.
+
+Response format should include metadata about the pagination state:
+{
+  "data": [...],
+  "pagination": {
+    "total": 1000,
+    "page": 2,
+    "page_size": 20,
+    "has_next": true,
+    "next_cursor": "eyJpZCI6MTIwfQ"
+  }
+}
+
+API Versioning
+================
+
+APIs evolve over time, and versioning allows introducing breaking changes without disrupting existing clients. Common strategies:
+
+URL path versioning: Include the version in the URL path. Example: /api/v1/users, /api/v2/users. This is the most common and visible approach. Easy to understand and route.
+
+Header versioning: Clients specify the desired version in a custom header. Example: Accept: application/vnd.myapi.v2+json. Keeps URLs clean but is less discoverable.
+
+Query parameter versioning: Pass the version as a query parameter. Example: /api/users?version=2. Simple but can be confused with other query parameters.
+
+Best practices for API versioning:
+- Only increment the major version for breaking changes (removed fields, changed types, renamed endpoints).
+- Support at least the previous version for a deprecation period (typically 6-12 months).
+- Document breaking changes clearly in a changelog.
+- Use sunset headers to communicate deprecation timelines.
+
+Authentication and Security
+================
+
+APIs must authenticate clients and protect sensitive data:
+
+- API Keys: Simple tokens passed in a header (X-API-Key) or query parameter. Best for server-to-server communication. Not suitable for client-side apps since keys are easily exposed.
+- OAuth 2.0: Industry standard for delegated authorization. Supports multiple flows (authorization code, client credentials, device code) for different use cases.
+- JWT (JSON Web Tokens): Self-contained tokens that carry claims (user ID, roles, expiration). The server can validate them without a database lookup. Use short expiration times and refresh tokens for security.
+
+Security best practices:
+- Always use HTTPS — never transmit credentials or sensitive data over plain HTTP.
+- Rate limit all endpoints to prevent abuse and DDoS attacks.
+- Validate and sanitize all input to prevent injection attacks.
+- Use CORS headers to control which origins can access the API.
+- Return consistent error responses that do not leak internal implementation details.
