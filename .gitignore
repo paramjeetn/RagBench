@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 .env
 *.egg-info/
+frontend/node_modules/
+frontend/.next/
+.deepeval/
