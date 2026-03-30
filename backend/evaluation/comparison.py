@@ -90,8 +90,6 @@ def _generate_insights(deltas: dict, config_diff: list[dict]) -> list[str]:
                 model_a = config_changes["generation.model"]["value_a"]
                 model_b = config_changes["generation.model"]["value_b"]
                 insight += f". Model changed from {model_a} to {model_b}."
-            elif "generation.temperature" in config_changes:
-                insight += ". Temperature change affects generation grounding."
             insights.append(insight)
 
     # --- Contextual Precision ---

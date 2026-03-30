@@ -214,3 +214,21 @@ async def create_eval_result(
     session.add(result)
     await session.flush()
     return result
+
+
+async def get_eval_result_chunks(
+    session: AsyncSession,
+    run_id: UUID,
+    result_id: UUID,
+) -> list | None:
+    """Return retrieved_chunks JSON for a single eval result, or None if not found."""
+    result = await session.execute(
+        select(EvalResult.retrieved_chunks).where(
+            EvalResult.id == result_id,
+            EvalResult.run_id == run_id,
+        )
+    )
+    row = result.scalar_one_or_none()
+    if row is None:
+        return None
+    return row

@@ -1,0 +1,49 @@
+03_RAG_Eval_System - Known Issues
+Created: 2026-03-18T03:55:54Z
+
+Purpose:
+- Track known bugs, gaps, and TODOs for the 03_RAG_Eval_System project.
+- Use concise entries to aid triage and assignment.
+
+Format (use one line per field):
+ID: short-kebab-id
+Title: Brief summary
+Status: open / confirmed / in_progress / fixed / wontfix
+Priority: P0 / P1 / P2
+Reporter: name (date)
+Description: Steps to reproduce and observed behavior
+Files: Relevant file paths
+Suggested Fix: Short note or link to PR
+
+---
+# Example entries (fill in actual details below)
+
+- ID: missing-readme-setup
+  Title: README missing local setup steps
+  Status: open
+  Priority: P1
+  Reporter: Paramjeet (2026-03-18)
+  Description: README does not explain how to install dependencies and run evaluation locally.
+  Files: README.md
+  Suggested Fix: Add a "Local setup" section with commands and env variables.
+
+- ID: eval-script-timeout
+  Title: Long-running eval script times out on Windows
+  Status: open
+  Priority: P0
+  Reporter: 
+  Description: 
+  Files: scripts\run_eval.ps1
+  Suggested Fix: 
+
+
+- ID: docker-compose-image-500
+  Title: docker compose up fails with 500 Internal Server Error when fetching local image
+  Status: open
+  Priority: P0
+  Reporter: Paramjeet (2026-03-18T05:28:52Z)
+  Description: Running `make up` (which runs `docker compose up -d --build`) fails with: "unable to get image '03_rag_eval_system-seed': request returned 500 Internal Server Error ... check if the server supports the requested API version". This appears related to Docker Desktop or image naming/case mismatch on Windows named pipe endpoint.
+  Files: Makefile, docker-compose.yml, Dockerfile (if present)
+  Suggested Fix: Check Docker Desktop status, verify image names and tags in docker-compose.yml, ensure Docker daemon API version compatibility, and try `docker compose build` followed by `docker compose up`.
+
+(End of file)

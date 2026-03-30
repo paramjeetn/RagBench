@@ -25,6 +25,11 @@ class EvalRunNotFoundError(RAGEvalError):
         super().__init__(message=message, status_code=404)
 
 
+class EvalResultNotFoundError(RAGEvalError):
+    def __init__(self, message: str = "Evaluation result not found"):
+        super().__init__(message=message, status_code=404)
+
+
 class IngestionError(RAGEvalError):
     def __init__(self, message: str = "Document ingestion failed"):
         super().__init__(message=message, status_code=500)

@@ -90,6 +90,7 @@ class IngestionPipeline:
                 )
 
             # 6. Store in vector store
+            await self.vector_store.ensure_collection()
             await self.vector_store.upsert(doc_id, chunk_dicts, vectors)
 
             # 7. Add to BM25 index

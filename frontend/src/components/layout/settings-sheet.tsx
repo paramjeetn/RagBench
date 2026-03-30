@@ -39,7 +39,6 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const [topK, setTopK] = useState(0);
   const [reranker, setReranker] = useState(false);
   const [model, setModel] = useState("");
-  const [temperature, setTemperature] = useState(0);
   const [embProvider, setEmbProvider] = useState("");
   const [embModel, setEmbModel] = useState("");
   const [embDim, setEmbDim] = useState(0);
@@ -54,7 +53,6 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     setTopK(cfg.retrieval.top_k);
     setReranker(cfg.retrieval.reranker_enabled);
     setModel(cfg.generation.model);
-    setTemperature(cfg.generation.temperature);
     setEmbProvider(cfg.embedding.provider);
     setEmbModel(cfg.embedding.model);
     setEmbDim(cfg.embedding.dimension);
@@ -88,8 +86,8 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     if (mode !== config.retrieval.mode || topK !== config.retrieval.top_k || reranker !== config.retrieval.reranker_enabled) {
       update.retrieval = { mode, top_k: topK, reranker_enabled: reranker };
     }
-    if (model !== config.generation.model || temperature !== config.generation.temperature) {
-      update.generation = { model, temperature };
+    if (model !== config.generation.model) {
+      update.generation = { model };
     }
     if (embProvider !== config.embedding.provider || embModel !== config.embedding.model || embDim !== config.embedding.dimension) {
       update.embedding = { provider: embProvider, model: embModel, dimension: embDim };
@@ -184,10 +182,6 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                 <label className="text-xs text-muted-foreground">Model</label>
                 <Input value={model} onChange={(e) => setModel(e.target.value)} />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Temperature</label>
-                <Input type="number" step="0.1" min="0" max="2" value={temperature} onChange={(e) => setTemperature(Number(e.target.value))} />
-              </div>
             </section>
 
             <Separator />
@@ -200,7 +194,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                 <Select value={embProvider} onValueChange={(v) => v && setEmbProvider(v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="google">Google</SelectItem>
+                    <SelectItem value="gemini">Google (Gemini)</SelectItem>
                     <SelectItem value="openai">OpenAI</SelectItem>
                   </SelectContent>
                 </Select>

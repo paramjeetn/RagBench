@@ -113,9 +113,7 @@ class QueryPipeline:
         ]
         prompt = build_query_prompt(question, chunks_for_prompt)
 
-        llm_response = await self.llm.generate(
-            SYSTEM_PROMPT, prompt, temperature=config.generation.temperature
-        )
+        llm_response = await self.llm.generate(SYSTEM_PROMPT, prompt)
 
         latency_ms = int((time.time() - start) * 1000)
 
@@ -159,9 +157,7 @@ class QueryPipeline:
         full_text = ""
         tokens_estimate = 0
 
-        async for token in self.llm.generate_stream(
-            SYSTEM_PROMPT, prompt, temperature=config.generation.temperature
-        ):
+        async for token in self.llm.generate_stream(SYSTEM_PROMPT, prompt):
             full_text += token
             tokens_estimate += 1
             yield json.dumps({"type": "token", "content": token})

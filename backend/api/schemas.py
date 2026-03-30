@@ -137,6 +137,7 @@ class EvalRunRequest(BaseModel):
 
 
 class EvalResultResponse(BaseModel):
+    id: str
     question: str
     ground_truth: str
     generated_answer: str
@@ -196,7 +197,6 @@ class RetrievalConfigSchema(BaseModel):
 
 class GenerationConfigSchema(BaseModel):
     model: str
-    temperature: float
 
 
 class EmbeddingConfigSchema(BaseModel):

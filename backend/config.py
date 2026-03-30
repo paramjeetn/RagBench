@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str | None = None
     GEMINI_API_KEY: str | None = None
     OLLAMA_BASE_URL: str = "http://localhost:11434"
-    EMBEDDING_MODEL: str = "gemini-embedding-001"
-    EMBEDDING_DIM: int = 768
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    EMBEDDING_DIM: int = 1536
     COLLECTION_NAME: str = "documents"
 
 
@@ -74,14 +74,13 @@ class RetrievalConfig(BaseModel):
 
 
 class GenerationConfig(BaseModel):
-    model: str = "gemini-2.5-flash"
-    temperature: float = 0.1
+    model: str = "gpt-5-nano"
 
 
 class EmbeddingConfig(BaseModel):
-    provider: EmbeddingProvider = EmbeddingProvider.gemini
-    model: str = "gemini-embedding-001"
-    dimension: int = 768
+    provider: EmbeddingProvider = EmbeddingProvider.openai
+    model: str = "text-embedding-3-small"
+    dimension: int = 1536
 
 
 class PipelineConfig(BaseModel):

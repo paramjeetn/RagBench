@@ -105,10 +105,11 @@ export interface EvalRunRequest {
 }
 
 export interface EvalResultResponse {
+  id: string;
   question: string;
   ground_truth: string;
   generated_answer: string;
-  retrieved_chunks: unknown[];
+  retrieved_chunks: SourceInfo[];
   metrics: Record<string, number>;
   latency_ms: number;
   tokens_used: number;
@@ -162,7 +163,6 @@ export interface RetrievalConfig {
 
 export interface GenerationConfig {
   model: string;
-  temperature: number;
 }
 
 export interface EmbeddingConfig {

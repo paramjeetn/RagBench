@@ -141,25 +141,25 @@ class GeminiEmbedder:
 
 
 # ---------------------------------------------------------------------------
-# SentenceTransformer (local / offline)
+# FastEmbed (local / offline)
 # ---------------------------------------------------------------------------
 
 
-class SentenceTransformerEmbedder:
-    """Generates embeddings using a local SentenceTransformer model.
+class FastEmbedEmbedder:
+    """Generates embeddings using a local FastEmbed model.
 
     The model is lazily loaded on the first call to ``embed`` so that import
-    time stays fast and the heavy ``sentence_transformers`` dependency is only
-    required when this embedder is actually used.
+    time stays fast and the ``fastembed`` dependency is only required when
+    this embedder is actually used.
     """
 
     _MODEL_DIMENSIONS: dict[str, int] = {
-        "all-MiniLM-L6-v2": 384,
-        "all-MiniLM-L12-v2": 384,
-        "all-mpnet-base-v2": 768,
+        "BAAI/bge-small-en-v1.5": 384,
+        "BAAI/bge-base-en-v1.5": 768,
+        "sentence-transformers/all-MiniLM-L6-v2": 384,
     }
 
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2") -> None:
+    def __init__(self, model_name: str = "BAAI/bge-small-en-v1.5") -> None:
         self.model_name = model_name
         self._model = None  # lazy-loaded
         self._dimension = self._MODEL_DIMENSIONS.get(model_name, 384)
@@ -169,14 +169,10 @@ class SentenceTransformerEmbedder:
         return self._dimension
 
     def _load_model(self):
-        """Load the SentenceTransformer model (called once)."""
-        from sentence_transformers import SentenceTransformer
+        """Load the FastEmbed model (called once)."""
+        from fastembed import TextEmbedding
 
-        self._model = SentenceTransformer(self.model_name)
-        # Update dimension from the actual model if possible.
-        dim = self._model.get_sentence_embedding_dimension()
-        if dim is not None:
-            self._dimension = int(dim)
+        self._model = TextEmbedding(model_name=self.model_name)
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
         if not texts:
@@ -187,13 +183,13 @@ class SentenceTransformerEmbedder:
 
         try:
             embeddings = await asyncio.to_thread(
-                self._model.encode, texts, convert_to_numpy=True
+                lambda: list(self._model.embed(texts))
             )
             return [vec.tolist() for vec in embeddings]
         except Exception as exc:
-            logger.error("SentenceTransformer embedding failed: %s", exc)
+            logger.error("FastEmbed embedding failed: %s", exc)
             raise EmbeddingError(
-                message=f"SentenceTransformer embedding failed: {exc}"
+                message=f"FastEmbed embedding failed: {exc}"
             ) from exc
 
 
@@ -260,4 +256,4 @@ def create_embedder(
             raise EmbeddingError(message="Gemini API key is required for Gemini embeddings")
         return GeminiEmbedder(api_key=api_key, model=model, dimension=dimension)
     else:
-        return SentenceTransformerEmbedder(model_name=model)
+        return FastEmbedEmbedder(model_name=model)

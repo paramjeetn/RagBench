@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import type { DatasetSummaryResponse, EvalRunResponse } from "@/lib/types";
+import { useEvalContext } from "@/context/eval-context";
 import { RunHistory } from "@/components/evaluate/run-history";
 import { ResultDetail } from "@/components/evaluate/result-detail";
 import { ProgressBar } from "@/components/evaluate/progress-bar";
@@ -15,12 +16,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Play } from "lucide-react";
+import { UploadDataset } from "@/components/evaluate/upload-dataset";
 
 export default function EvaluatePage() {
+  const { activeRun, setActiveRun } = useEvalContext();
   const [datasets, setDatasets] = useState<DatasetSummaryResponse[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<string>("");
   const [runs, setRuns] = useState<EvalRunResponse[]>([]);
-  const [activeRun, setActiveRun] = useState<EvalRunResponse | null>(null);
   const [viewingRun, setViewingRun] = useState<EvalRunResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -44,28 +46,12 @@ export default function EvaluatePage() {
       .finally(() => setLoading(false));
   }, [loadRuns]);
 
-  // Poll active run
+  // Refresh run history when active run completes
   useEffect(() => {
-    if (!activeRun || activeRun.status !== "running") return;
-
-    const interval = setInterval(async () => {
-      try {
-        const updated = await api.get<EvalRunResponse>(
-          `/api/eval/runs/${activeRun.id}`
-        );
-        setActiveRun(updated);
-
-        if (updated.status !== "running") {
-          clearInterval(interval);
-          await loadRuns();
-        }
-      } catch {
-        clearInterval(interval);
-      }
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [activeRun, loadRuns]);
+    if (activeRun && activeRun.status !== "running") {
+      loadRuns();
+    }
+  }, [activeRun?.status, loadRuns]);
 
   const startRun = async () => {
     if (!selectedDataset) return;
@@ -84,7 +70,6 @@ export default function EvaluatePage() {
   };
 
   const handleViewRun = async (run: EvalRunResponse) => {
-    // Fetch full details with results
     const full = await api.get<EvalRunResponse>(`/api/eval/runs/${run.id}`);
     setViewingRun(full);
   };
@@ -138,6 +123,12 @@ export default function EvaluatePage() {
           )}
           Run Evaluation
         </Button>
+        <UploadDataset
+          onUploaded={(ds) => {
+            setDatasets((prev) => [...prev, ds]);
+            setSelectedDataset(ds.id);
+          }}
+        />
       </div>
 
       {/* Active run progress */}

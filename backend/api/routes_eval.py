@@ -16,6 +16,7 @@ from api.schemas import (
     EvalRunProgress,
     EvalRunRequest,
     EvalRunResponse,
+    SourceInfo,
 )
 from config import get_pipeline_config
 from database import repository as repo
@@ -23,7 +24,7 @@ from database.models import EvalRun
 from database.session import get_db, async_session as async_session_factory
 from evaluation.comparison import compare_runs
 from evaluation.runner import EvalRunner
-from exceptions import DatasetNotFoundError, EvalRunNotFoundError
+from exceptions import DatasetNotFoundError, EvalResultNotFoundError, EvalRunNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ def _run_to_response(
     if include_results and hasattr(run, "eval_results") and run.eval_results:
         results = [
             EvalResultResponse(
+                id=str(r.id),
                 question=r.question,
                 ground_truth=r.ground_truth,
                 generated_answer=r.generated_answer,
@@ -249,3 +251,21 @@ async def compare_eval_runs(
     comparison = compare_runs(run_a_dict, run_b_dict)
 
     return EvalCompareResponse(**comparison)
+
+
+@router.get(
+    "/runs/{run_id}/results/{result_id}/chunks",
+    response_model=list[SourceInfo],
+)
+async def get_eval_result_chunks(
+    run_id: str,
+    result_id: str,
+    session: AsyncSession = Depends(get_db),
+):
+    """Get retrieved chunks for a single evaluation result."""
+    chunks = await repo.get_eval_result_chunks(
+        session, UUID(run_id), UUID(result_id)
+    )
+    if chunks is None:
+        raise EvalResultNotFoundError()
+    return chunks

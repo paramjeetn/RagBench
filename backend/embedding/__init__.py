@@ -4,7 +4,7 @@ from embedding.embedder import (
     EmbedderProtocol,
     FakeEmbedder,
     OpenAIEmbedder,
-    SentenceTransformerEmbedder,
+    FastEmbedEmbedder,
     create_embedder,
 )
 
@@ -12,6 +12,6 @@ __all__ = [
     "EmbedderProtocol",
     "FakeEmbedder",
     "OpenAIEmbedder",
-    "SentenceTransformerEmbedder",
+    "FastEmbedEmbedder",
     "create_embedder",
 ]

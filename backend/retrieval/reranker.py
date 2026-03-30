@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 from typing import Protocol, runtime_checkable
 
 from exceptions import RetrievalError
@@ -30,26 +31,31 @@ class RerankerProtocol(Protocol):
 # Cross-encoder reranker
 # ---------------------------------------------------------------------------
 
-class CrossEncoderReranker:
-    """Reranks results using a cross-encoder model from sentence-transformers.
+def _sigmoid(x: float) -> float:
+    """Convert a raw logit to a [0, 1] probability."""
+    return 1.0 / (1.0 + math.exp(-x))
 
-    The model is lazily loaded on first use so that the heavy dependency is
-    only required when this reranker is actually invoked.
+
+class CrossEncoderReranker:
+    """Reranks results using a cross-encoder model from fastembed.
+
+    The model is lazily loaded on first use so that the dependency is only
+    required when this reranker is actually invoked.
     """
 
     def __init__(
         self,
-        model_name: str = "cross-encoder/ms-marco-MiniLM-L-12-v2",
+        model_name: str = "Xenova/ms-marco-MiniLM-L-6-v2",
     ) -> None:
         self.model_name = model_name
         self._model = None
 
     def _load_model(self) -> None:
-        """Load the CrossEncoder model (called once)."""
+        """Load the TextCrossEncoder model (called once)."""
         if self._model is None:
-            from sentence_transformers import CrossEncoder
+            from fastembed.rerank.cross_encoder import TextCrossEncoder
 
-            self._model = CrossEncoder(self.model_name)
+            self._model = TextCrossEncoder(model_name=self.model_name)
 
     async def rerank(
         self,
@@ -64,8 +70,10 @@ class CrossEncoderReranker:
         try:
             self._load_model()
 
-            pairs = [(query, r.text) for r in results]
-            scores = await asyncio.to_thread(self._model.predict, pairs)
+            documents = [r.text for r in results]
+            scores = await asyncio.to_thread(
+                lambda: list(self._model.rerank(query, documents))
+            )
 
             scored = sorted(
                 zip(scores, results), key=lambda x: x[0], reverse=True,
@@ -73,7 +81,7 @@ class CrossEncoderReranker:
             return [
                 RetrievalResult(
                     text=r.text,
-                    score=float(s),
+                    score=_sigmoid(float(s)),
                     doc_id=r.doc_id,
                     source_file=r.source_file,
                     page_number=r.page_number,

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { DocumentResponse } from "@/lib/types";
-import { useChatStream } from "@/hooks/use-chat-stream";
+import { useChatContext } from "@/context/chat-context";
 import { MessageList } from "@/components/chat/message-list";
 import { MessageInput } from "@/components/chat/message-input";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
 export default function ChatPage() {
-  const { messages, streaming, sendMessage, clearMessages } = useChatStream();
+  const { messages, streaming, sendMessage, clearMessages } = useChatContext();
   const [documents, setDocuments] = useState<DocumentResponse[]>([]);
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
 

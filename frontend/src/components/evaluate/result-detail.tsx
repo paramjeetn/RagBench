@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatScore } from "@/lib/utils";
 import type { EvalRunResponse } from "@/lib/types";
+import { SourceCard } from "@/components/chat/source-card";
 
 interface ResultDetailProps {
   run: EvalRunResponse;
@@ -75,6 +76,22 @@ export function ResultDetail({ run, onBack }: ResultDetailProps) {
                     <p className="text-destructive">{result.failure_reason}</p>
                   </div>
                 )}
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                    Retrieved Chunks ({result.retrieved_chunks?.length ?? 0})
+                  </p>
+                  {result.retrieved_chunks?.length > 0 ? (
+                    <div className="space-y-1">
+                      {result.retrieved_chunks.map((chunk, j) => (
+                        <SourceCard key={j} source={chunk} />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">
+                      No chunks were retrieved for this question.
+                    </p>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {Object.entries(result.metrics).map(([key, value]) => (
                     <Badge key={key} variant="outline" className="text-xs">

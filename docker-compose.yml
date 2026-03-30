@@ -39,6 +39,7 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      DEEPEVAL_PER_ATTEMPT_TIMEOUT_SECONDS_OVERRIDE: "300"
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,6 +48,12 @@ services:
     volumes:
       - ./backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   seed:
     build:
@@ -55,9 +62,12 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://user:pass@postgres:5432/rageval
       QDRANT_URL: http://qdrant:6333
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     depends_on:
       backend:
-        condition: service_started
+        condition: service_healthy
     command: python seed/load_seed_data.py
     restart: "no"
 

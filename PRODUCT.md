@@ -1,4 +1,4 @@
-# RAG Eval System — Product Experience
+# RAGBench — Product Experience
 
 > Clone it. Run one command. See a working RAG evaluation dashboard in 30 seconds.
 
@@ -9,12 +9,12 @@ This document describes the **user-facing product** — what you see, what you c
 ## Quick Start
 
 ```bash
-git clone https://github.com/paramjeet/rag-eval-system.git
-cd rag-eval-system
-docker compose up
+git clone https://github.com/paramjeet/ragbench.git
+cd ragbench
+make up
 ```
 
-Open `http://localhost:8501` — the dashboard loads with pre-computed evaluation results. No API key required.
+Open `http://localhost:3000` — the dashboard loads with pre-computed evaluation results. No API key required.
 
 **Want to run live queries?** Add your key to `.env`:
 ```bash

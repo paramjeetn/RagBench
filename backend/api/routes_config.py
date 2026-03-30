@@ -70,7 +70,6 @@ def _config_response() -> PipelineConfigResponse:
         ),
         generation=GenerationConfigSchema(
             model=config.generation.model,
-            temperature=config.generation.temperature,
         ),
         embedding=EmbeddingConfigSchema(
             provider=config.embedding.provider.value,
