@@ -130,6 +130,7 @@ export interface EvalRunResponse {
   document_ids: string[];
   config: Record<string, unknown>;
   metrics?: Record<string, number> | null;
+  scoring_mode?: string | null;
   progress?: EvalRunProgress | null;
   results?: EvalResultResponse[] | null;
   question_count?: number | null;
@@ -175,6 +176,7 @@ export interface ConfigStatus {
   reindexing: boolean;
   active_collection: string;
   collection_ready: boolean;
+  scoring_available: boolean;
 }
 
 export interface PipelineConfigResponse {

@@ -64,6 +64,7 @@ class EvalRun(Base):
     document_ids: Mapped[list] = mapped_column(JSON, default=list)
     config: Mapped[dict] = mapped_column(JSON)
     metrics: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    scoring_mode: Mapped[str | None] = mapped_column(String(20), nullable=True)
     progress_done: Mapped[int] = mapped_column(Integer, default=0)
     progress_total: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(

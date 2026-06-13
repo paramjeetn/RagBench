@@ -172,12 +172,15 @@ async def update_eval_run_complete(
     run_id: UUID,
     status: str,
     metrics: dict,
+    scoring_mode: str | None = None,
 ) -> EvalRun | None:
     run = await session.get(EvalRun, run_id)
     if run is None:
         return None
     run.status = status
     run.metrics = metrics
+    if scoring_mode is not None:
+        run.scoring_mode = scoring_mode
     await session.flush()
     return run
 

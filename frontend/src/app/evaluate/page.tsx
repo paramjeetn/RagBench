@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
-import type { DatasetSummaryResponse, EvalRunResponse } from "@/lib/types";
+import type { DatasetSummaryResponse, EvalRunResponse, PipelineConfigResponse } from "@/lib/types";
 import { useEvalContext } from "@/context/eval-context";
 import { RunHistory } from "@/components/evaluate/run-history";
 import { ResultDetail } from "@/components/evaluate/result-detail";
@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Play, Database } from "lucide-react";
+import { Loader2, Play, Database, TriangleAlert } from "lucide-react";
 import { UploadDataset } from "@/components/evaluate/upload-dataset";
 
 export default function EvaluatePage() {
@@ -27,6 +27,7 @@ export default function EvaluatePage() {
   const [viewingRun, setViewingRun] = useState<EvalRunResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [scoringAvailable, setScoringAvailable] = useState<boolean | null>(null);
 
   const loadRuns = useCallback(async () => {
     const allRuns = await api.get<EvalRunResponse[]>("/api/eval/runs");
@@ -45,6 +46,10 @@ export default function EvaluatePage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    api.get<PipelineConfigResponse>("/api/config/")
+      .then((cfg) => setScoringAvailable(cfg.status.scoring_available))
+      .catch(() => {});
   }, [loadRuns]);
 
   useEffect(() => {
@@ -161,6 +166,19 @@ export default function EvaluatePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Scoring mode warning */}
+      {scoringAvailable === false && (
+        <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+          <p>
+            <span className="font-semibold">No API key detected</span> — runs will use heuristic scoring.
+            Add <code className="rounded bg-amber-100 px-1 font-mono text-xs">OPENAI_API_KEY</code>,{" "}
+            <code className="rounded bg-amber-100 px-1 font-mono text-xs">ANTHROPIC_API_KEY</code>, or{" "}
+            <code className="rounded bg-amber-100 px-1 font-mono text-xs">GEMINI_API_KEY</code> for LLM-based eval.
+          </p>
+        </div>
+      )}
 
       {/* Run history */}
       <div className="space-y-4">

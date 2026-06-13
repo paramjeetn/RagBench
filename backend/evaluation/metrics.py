@@ -6,8 +6,11 @@ to simple heuristic scoring based on text overlap.
 
 import hashlib
 import json
+import logging
 import random
 from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 METRIC_NAMES = [
     "faithfulness",
@@ -65,16 +68,26 @@ async def compute_metrics(
     generated_answer: str,
     retrieved_chunks: list[str],
     config: dict | None = None,
-) -> MetricScores:
-    """Compute RAG evaluation metrics. Tries deepeval first, falls back to heuristic."""
+) -> tuple["MetricScores", str]:
+    """Compute RAG evaluation metrics. Tries deepeval first, falls back to heuristic.
+
+    Returns a tuple of (MetricScores, scoring_mode) where scoring_mode is either
+    "deepeval" or "heuristic".
+    """
     try:
-        return await _compute_deepeval(
+        scores = await _compute_deepeval(
             question, ground_truth, generated_answer, retrieved_chunks
         )
-    except Exception:
+        return scores, "deepeval"
+    except Exception as exc:
+        logger.warning(
+            "DeepEval unavailable (%s) — falling back to heuristic scoring. "
+            "Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or GEMINI_API_KEY for LLM-based eval.",
+            exc,
+        )
         return _compute_heuristic(
             question, ground_truth, generated_answer, retrieved_chunks, config
-        )
+        ), "heuristic"
 
 
 async def _compute_deepeval(

@@ -40,12 +40,13 @@ export function RunHistory({ runs, onViewRun }: RunHistoryProps) {
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
       {/* Header */}
-      <div className="grid grid-cols-[1fr_140px_100px_80px_80px_80px_48px] gap-3 border-b bg-muted/30 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="grid grid-cols-[1fr_140px_100px_80px_80px_90px_80px_48px] gap-3 border-b bg-muted/30 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         <span>Run</span>
         <span>Dataset</span>
         <span>Status</span>
         <span>Score</span>
         <span>Pass rate</span>
+        <span>Scoring</span>
         <span>Date</span>
         <span />
       </div>
@@ -61,7 +62,7 @@ export function RunHistory({ runs, onViewRun }: RunHistoryProps) {
           return (
             <div
               key={run.id}
-              className="grid grid-cols-[1fr_140px_100px_80px_80px_80px_48px] items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/20"
+              className="grid grid-cols-[1fr_140px_100px_80px_80px_90px_80px_48px] items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/20"
             >
               <span className="font-medium truncate">{runLabel(run)}</span>
               <span className="truncate text-muted-foreground text-xs">{run.dataset_name ?? run.dataset_id}</span>
@@ -88,6 +89,19 @@ export function RunHistory({ runs, onViewRun }: RunHistoryProps) {
                     <span className="font-medium">{run.pass_count ?? 0}</span>
                     <span className="text-muted-foreground">/{run.question_count}</span>
                   </>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </span>
+              <span>
+                {run.scoring_mode === "deepeval" ? (
+                  <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                    DeepEval
+                  </span>
+                ) : run.scoring_mode === "heuristic" ? (
+                  <span className="inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                    Heuristic
+                  </span>
                 ) : (
                   <span className="text-muted-foreground">—</span>
                 )}

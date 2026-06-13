@@ -21,7 +21,7 @@ from api.schemas import (
     PipelineConfigUpdateRequest,
     RetrievalConfigSchema,
 )
-from config import EMBEDDING_MODEL_DEFAULTS, get_collection_name, get_pipeline_config, update_pipeline_config
+from config import EMBEDDING_MODEL_DEFAULTS, get_collection_name, get_pipeline_config, get_settings, update_pipeline_config
 from database import repository as repo
 from database.session import async_session
 
@@ -57,6 +57,8 @@ def _config_response() -> PipelineConfigResponse:
     """Build a PipelineConfigResponse from the current pipeline config."""
     config = get_pipeline_config()
     active_collection = get_collection_name(config)
+    s = get_settings()
+    scoring_available = bool(s.OPENAI_API_KEY or s.ANTHROPIC_API_KEY or s.GEMINI_API_KEY)
     return PipelineConfigResponse(
         chunking=ChunkingConfigSchema(
             strategy=config.chunking.strategy.value,
@@ -80,6 +82,7 @@ def _config_response() -> PipelineConfigResponse:
             reindexing=_reindexing,
             active_collection=active_collection,
             collection_ready=_collection_ready,
+            scoring_available=scoring_available,
         ),
     )
 

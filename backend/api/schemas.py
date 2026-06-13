@@ -164,6 +164,7 @@ class EvalRunResponse(BaseModel):
     document_ids: list[str]
     config: dict[str, Any]
     metrics: dict[str, Any] | None = None
+    scoring_mode: str | None = None
     progress: EvalRunProgress | None = None
     results: list[EvalResultResponse] | None = None
     question_count: int | None = None
@@ -209,6 +210,7 @@ class ConfigStatusSchema(BaseModel):
     reindexing: bool = False
     active_collection: str = ""
     collection_ready: bool = True
+    scoring_available: bool = False
 
 
 class CollectionInfo(BaseModel):

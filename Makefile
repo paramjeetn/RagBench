@@ -1,4 +1,4 @@
-.PHONY: up down build logs logs-backend logs-frontend seed frontend-dev clean-data clean-slate help
+.PHONY: up down build logs logs-backend logs-frontend frontend-dev clean-data clean-slate help
 
 up:                    ## Start all services (backend + frontend + db)
 	docker compose up -d --build
@@ -17,9 +17,6 @@ logs-backend:          ## Tail backend logs only
 
 logs-frontend:         ## Tail frontend logs only
 	docker compose logs -f frontend
-
-seed:                  ## Re-run seed data loader
-	docker compose run --rm seed
 
 frontend-dev:          ## Run frontend in dev mode (outside Docker)
 	cd frontend && npm run dev

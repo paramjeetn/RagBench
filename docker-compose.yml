@@ -55,22 +55,6 @@ services:
       retries: 10
       start_period: 30s
 
-  seed:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    environment:
-      DATABASE_URL: postgresql+asyncpg://user:pass@postgres:5432/rageval
-      QDRANT_URL: http://qdrant:6333
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-    depends_on:
-      backend:
-        condition: service_healthy
-    command: python seed/load_seed_data.py
-    restart: "no"
-
   frontend:
     build:
       context: ./frontend

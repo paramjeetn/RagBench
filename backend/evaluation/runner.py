@@ -76,6 +76,7 @@ class EvalRunner:
                 await session.commit()
 
                 all_scores: list[MetricScores] = []
+                run_scoring_mode: str | None = None
 
                 for i, tc in enumerate(test_cases):
                     try:
@@ -90,13 +91,15 @@ class EvalRunner:
                         chunk_texts = [s["text"] for s in response.sources]
 
                         # Compute metrics (pass config so heuristic scoring is config-sensitive)
-                        scores = await compute_metrics(
+                        scores, scoring_mode = await compute_metrics(
                             question=tc.question,
                             ground_truth=tc.ground_truth,
                             generated_answer=response.answer,
                             retrieved_chunks=chunk_texts,
                             config=run_config,
                         )
+                        if run_scoring_mode is None:
+                            run_scoring_mode = scoring_mode
                         all_scores.append(scores)
 
                         # Persist per-question result
@@ -153,7 +156,8 @@ class EvalRunner:
                 # Aggregate scores and mark the run as completed
                 aggregated = aggregate_metrics(all_scores)
                 await repo.update_eval_run_complete(
-                    session, run_uuid, "completed", aggregated
+                    session, run_uuid, "completed", aggregated,
+                    scoring_mode=run_scoring_mode,
                 )
                 await session.commit()
 

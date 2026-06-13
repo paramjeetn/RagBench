@@ -79,6 +79,7 @@ def _run_to_response(
         document_ids=run.document_ids or [],
         config=run.config or {},
         metrics=run.metrics,
+        scoring_mode=getattr(run, "scoring_mode", None),
         progress=progress,
         results=results,
         question_count=question_count,
