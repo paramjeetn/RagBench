@@ -28,14 +28,14 @@ export default function ChatPage() {
   return (
     <div className="relative flex h-full flex-col">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between pb-3">
+      <div className="flex shrink-0 items-center justify-between pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Chat</h1>
-          <p className="text-sm text-muted-foreground">Ask questions against your ingested documents.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Chat</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Ask questions against your ingested documents.</p>
         </div>
         {messages.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={clearMessages} className="gap-1.5 text-muted-foreground">
-            <Trash2 className="h-3.5 w-3.5" />
+          <Button variant="ghost" size="sm" onClick={clearMessages} className="gap-2 text-muted-foreground hover:text-foreground">
+            <Trash2 className="h-4 w-4" />
             Clear
           </Button>
         )}
@@ -43,7 +43,7 @@ export default function ChatPage() {
 
       {/* Document filter */}
       {documents.length > 0 && (
-        <div className="flex shrink-0 flex-wrap gap-1.5 border-b pb-3 mb-3">
+        <div className="flex shrink-0 flex-wrap gap-2.5 border-b border-border/50 pb-4 mb-4">
           {documents.map((doc) => {
             const active = selectedDocIds.includes(doc.id);
             return (
@@ -51,13 +51,13 @@ export default function ChatPage() {
                 key={doc.id}
                 onClick={() => toggleDoc(doc.id)}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                  "inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-200",
                   active
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                    ? "border-primary bg-primary/8 text-primary shadow-sm"
+                    : "border-border/60 bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground"
                 )}
               >
-                <FileText className="h-3 w-3" />
+                <FileText className="h-3.5 w-3.5" />
                 {doc.filename}
               </button>
             );
@@ -65,7 +65,7 @@ export default function ChatPage() {
           {selectedDocIds.length > 0 && (
             <button
               onClick={() => setSelectedDocIds([])}
-              className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-1"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline px-1"
             >
               Clear filter
             </button>

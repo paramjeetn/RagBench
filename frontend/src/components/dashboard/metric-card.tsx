@@ -25,20 +25,20 @@ export function MetricCard({ name, value, delta }: MetricCardProps) {
   const TrendIcon = delta > 0 ? TrendingUp : delta < 0 ? TrendingDown : Minus;
 
   return (
-    <div className={cn("rounded-xl border p-4 transition-shadow hover:shadow-sm", scoreBg(value))}>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+    <div className={cn("rounded-lg border border-border/50 p-5 transition-all duration-200 hover:shadow-md", scoreBg(value))}>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      <p className={cn("mt-2 text-3xl font-bold tabular-nums", scoreColor(value))}>
+      <p className={cn("mt-3 text-4xl font-bold tabular-nums", scoreColor(value))}>
         {formatScore(value)}
       </p>
       <div
         className={cn(
-          "mt-2 flex items-center gap-1 text-xs font-medium",
+          "mt-3 flex items-center gap-1.5 text-xs font-medium",
           delta > 0 ? "text-emerald-600" : delta < 0 ? "text-red-500" : "text-muted-foreground"
         )}
       >
-        <TrendIcon className="h-3 w-3" />
+        <TrendIcon className="h-3.5 w-3.5" />
         <span>{formatDelta(delta)} vs prev</span>
       </div>
     </div>

@@ -84,10 +84,10 @@ export default function EvaluatePage() {
 
   if (viewingRun) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-7">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Evaluation Results</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Evaluation Results</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Per-question breakdown and retrieved context.
           </p>
         </div>
@@ -97,11 +97,11 @@ export default function EvaluatePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Evaluate</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Evaluate</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Run RAG Triad evaluation against a Q&amp;A dataset.
         </p>
       </div>
@@ -163,8 +163,8 @@ export default function EvaluatePage() {
       </Card>
 
       {/* Run history */}
-      <div className="space-y-3">
-        <h2 className="text-base font-semibold">History</h2>
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">History</h2>
         <RunHistory runs={runs} onViewRun={handleViewRun} />
       </div>
     </div>

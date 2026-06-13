@@ -39,7 +39,7 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
   };
 
   return (
-    <div className="flex items-end gap-2 rounded-xl border bg-card px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-ring/40">
+    <div className="flex items-end gap-3 rounded-lg border border-border/50 bg-card px-4 py-3 shadow-sm transition-all duration-200 focus-within:ring-2 focus-within:ring-ring/30 focus-within:ring-offset-1">
       <textarea
         ref={textareaRef}
         value={value}
@@ -53,12 +53,12 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
       />
       <Button
         type="button"
-        size="icon"
+        size="icon-sm"
         onClick={handleSubmit}
         disabled={disabled || !value.trim()}
-        className="h-8 w-8 shrink-0 rounded-lg"
+        className="shrink-0"
       >
-        <Send className="h-3.5 w-3.5" />
+        <Send className="h-4 w-4" />
       </Button>
     </div>
   );

@@ -12,9 +12,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <ChatProvider>
       <EvalProvider>
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden bg-background">
           <Sidebar onOpenSettings={() => setSettingsOpen(true)} />
-          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+          <main className="flex-1 overflow-y-auto bg-background p-8">{children}</main>
           <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
         </div>
       </EvalProvider>
