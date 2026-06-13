@@ -68,6 +68,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           document_ids: documentIds?.length ? documentIds : null,
         });
 
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          const isApiKey =
+            text.toLowerCase().includes("api_key") ||
+            text.toLowerCase().includes("api key") ||
+            text.toLowerCase().includes("not configured") ||
+            text.toLowerCase().includes("authentication") ||
+            text.toLowerCase().includes("401");
+          throw new Error(
+            isApiKey
+              ? `API key error: ${text}\n\nPlease check your API key in Settings.`
+              : `Request failed (${res.status}): ${text}`
+          );
+        }
+
         if (!res.body) throw new Error("No response body");
 
         const reader = res.body.getReader();
@@ -106,6 +121,27 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               sources = event.sources;
             } else if (event.type === "metadata") {
               metadata = event.metadata;
+            } else if (event.type === "error") {
+              const msg: string = event.message ?? "Unknown error";
+              const isApiKey =
+                msg.toLowerCase().includes("api_key") ||
+                msg.toLowerCase().includes("api key") ||
+                msg.toLowerCase().includes("not configured") ||
+                msg.toLowerCase().includes("authentication") ||
+                msg.toLowerCase().includes("unauthorized") ||
+                msg.toLowerCase().includes("401");
+              const display = isApiKey
+                ? `API key error: ${msg}\n\nPlease check your API key in Settings.`
+                : `Error: ${msg}`;
+              setMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = {
+                  ...updated[updated.length - 1],
+                  content: display,
+                  error: true,
+                };
+                return updated;
+              });
             }
           }
         }

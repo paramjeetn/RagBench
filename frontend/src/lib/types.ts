@@ -124,6 +124,7 @@ export interface EvalRunProgress {
 
 export interface EvalRunResponse {
   id: string;
+  name?: string | null;
   status: string;
   dataset_id: string;
   dataset_name?: string | null;
@@ -201,7 +202,8 @@ export interface PipelineConfigUpdateRequest {
 export type StreamEvent =
   | { type: "token"; content: string }
   | { type: "sources"; sources: SourceInfo[] }
-  | { type: "metadata"; metadata: QueryMetadata };
+  | { type: "metadata"; metadata: QueryMetadata }
+  | { type: "error"; message: string };
 
 // ---------------------------------------------------------------------------
 // Chat (client-side)
@@ -212,4 +214,5 @@ export interface ChatMessage {
   content: string;
   sources?: SourceInfo[];
   metadata?: QueryMetadata;
+  error?: boolean;
 }

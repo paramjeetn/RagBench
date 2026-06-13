@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Sparkles } from "lucide-react";
 import { SourceCard } from "./source-card";
 import type { ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface MessageListProps {
   messages: ChatMessage[];
+  streaming?: boolean;
 }
 
 export function MessageList({ messages }: MessageListProps) {
@@ -40,11 +41,26 @@ export function MessageList({ messages }: MessageListProps) {
             className={cn(
               "max-w-[78%] rounded-lg px-4 py-3 text-sm leading-relaxed",
               msg.role === "user"
-                ? "rounded-br-none bg-primary text-primary-foreground shadow-md"
+                ? "rounded-br-none bg-primary text-white [&_p]:text-white shadow-md"
+                : msg.error
+                ? "rounded-bl-none border border-destructive/40 bg-destructive/8 text-destructive [&_p]:text-destructive shadow-sm"
                 : "rounded-bl-none border border-border/50 bg-card shadow-sm"
             )}
           >
-            <p className="whitespace-pre-wrap">{msg.content}</p>
+            {msg.role === "assistant" && msg.content === "" ? (
+              <div className="flex items-center gap-2.5 py-0.5">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:0ms]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:150ms]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:300ms]" />
+                </div>
+              </div>
+            ) : (
+              <p className="whitespace-pre-wrap">{msg.content}</p>
+            )}
           </div>
 
           {/* Sources */}
