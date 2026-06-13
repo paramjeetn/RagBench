@@ -21,7 +21,7 @@ from api.schemas import (
     PipelineConfigUpdateRequest,
     RetrievalConfigSchema,
 )
-from config import get_collection_name, get_pipeline_config, update_pipeline_config
+from config import EMBEDDING_MODEL_DEFAULTS, get_collection_name, get_pipeline_config, update_pipeline_config
 from database import repository as repo
 from database.session import async_session
 
@@ -113,7 +113,15 @@ async def update_config(body: PipelineConfigUpdateRequest):
     if body.generation is not None:
         updates["generation"] = body.generation
     if body.embedding is not None:
-        updates["embedding"] = body.embedding
+        emb = dict(body.embedding)
+        # Auto-set dimension from the known model defaults so the user never
+        # has to keep provider, model, and dimension in sync manually.
+        provider = emb.get("provider") or old_config.embedding.provider.value
+        model_name = emb.get("model") or old_config.embedding.model
+        auto_dim = EMBEDDING_MODEL_DEFAULTS.get((provider, model_name))
+        if auto_dim is not None:
+            emb["dimension"] = auto_dim
+        updates["embedding"] = emb
 
     if updates:
         update_pipeline_config(updates)

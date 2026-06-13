@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RAG Eval System",
+  title: "RagBench",
   description: "Evaluate and compare RAG pipeline configurations",
 };
 

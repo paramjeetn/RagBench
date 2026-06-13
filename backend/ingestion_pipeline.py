@@ -149,7 +149,7 @@ class IngestionPipeline:
         for doc in documents:
             doc_id = doc["doc_id"]
             if doc_id in file_contents:
-                result = await self.ingest(file_contents[doc_id], doc["filename"])
+                result = await self.ingest(file_contents[doc_id], doc["filename"], doc_id=doc_id)
                 results.append(result)
 
         return results

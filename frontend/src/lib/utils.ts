@@ -14,7 +14,8 @@ export function runLabel(run: EvalRunResponse): string {
     month: "short",
     day: "numeric",
   });
-  return `${s}${r} (${d})`;
+  const shortId = run.id.slice(-4);
+  return `${s}${r} (${d} #${shortId})`;
 }
 
 export function formatScore(value: number): string {

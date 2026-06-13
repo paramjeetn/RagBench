@@ -36,10 +36,14 @@ async def query_stream(
     """Ask a question (SSE streaming). Returns Server-Sent Events."""
 
     async def event_generator():
-        async for event_json in pipeline.query_stream(
-            body.question, body.document_ids
-        ):
-            yield f"data: {event_json}\n\n"
+        import json as _json
+        try:
+            async for event_json in pipeline.query_stream(
+                body.question, body.document_ids
+            ):
+                yield f"data: {event_json}\n\n"
+        except Exception as exc:
+            yield f"data: {_json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(

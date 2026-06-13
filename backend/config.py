@@ -74,13 +74,25 @@ class RetrievalConfig(BaseModel):
 
 
 class GenerationConfig(BaseModel):
-    model: str = "gpt-5-nano"
+    model: str = "gemini-2.0-flash"
+
+
+# Maps (provider, model) → embedding dimension. Used to auto-set dimension
+# when embedding config changes so the user never has to set it manually.
+EMBEDDING_MODEL_DEFAULTS: dict[tuple[str, str], int] = {
+    ("openai", "text-embedding-3-small"): 1536,
+    ("openai", "text-embedding-3-large"): 3072,
+    ("gemini", "gemini-embedding-001"): 768,
+    ("local", "BAAI/bge-small-en-v1.5"): 384,
+    ("local", "all-MiniLM-L6-v2"): 384,
+}
 
 
 class EmbeddingConfig(BaseModel):
-    provider: EmbeddingProvider = EmbeddingProvider.openai
-    model: str = "text-embedding-3-small"
-    dimension: int = 1536
+    # Default to local fastembed model — no API key required, pre-downloaded in Docker image.
+    provider: EmbeddingProvider = EmbeddingProvider.local
+    model: str = "BAAI/bge-small-en-v1.5"
+    dimension: int = 384
 
 
 class PipelineConfig(BaseModel):

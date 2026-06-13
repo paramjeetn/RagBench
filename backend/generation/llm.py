@@ -375,28 +375,21 @@ def create_llm(model: str, settings=None) -> LLMProtocol:
 
     if model.startswith("gpt-") or model.startswith("o1") or model.startswith("o3"):
         if not settings.OPENAI_API_KEY:
-            import logging
-            logging.getLogger(__name__).warning(
-                "OPENAI_API_KEY not set — falling back to FakeLLM. "
-                "Queries will return placeholder answers."
+            raise GenerationError(
+                "OPENAI_API_KEY not configured. Add it to .env to use GPT models."
             )
-            return FakeLLM()
         return OpenAILLM(api_key=settings.OPENAI_API_KEY, model=model)
     elif model.startswith("claude-"):
         if not settings.ANTHROPIC_API_KEY:
-            import logging
-            logging.getLogger(__name__).warning(
-                "ANTHROPIC_API_KEY not set — falling back to FakeLLM."
+            raise GenerationError(
+                "ANTHROPIC_API_KEY not configured. Add it to .env to use Claude models."
             )
-            return FakeLLM()
         return AnthropicLLM(api_key=settings.ANTHROPIC_API_KEY, model=model)
     elif model.startswith("gemini-"):
         if not settings.GEMINI_API_KEY:
-            import logging
-            logging.getLogger(__name__).warning(
-                "GEMINI_API_KEY not set — falling back to FakeLLM."
+            raise GenerationError(
+                "GEMINI_API_KEY not configured. Add it to .env to use Gemini models."
             )
-            return FakeLLM()
         return GeminiLLM(api_key=settings.GEMINI_API_KEY, model=model)
     else:
         # Default to Ollama for anything else (llama3, mistral, etc.)

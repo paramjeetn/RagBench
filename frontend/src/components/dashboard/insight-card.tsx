@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Lightbulb } from "lucide-react";
 
 interface InsightCardProps {
@@ -7,11 +6,9 @@ interface InsightCardProps {
 
 export function InsightCard({ insight }: InsightCardProps) {
   return (
-    <Card>
-      <CardContent className="flex items-start gap-3 pt-4">
-        <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-yellow-500" />
-        <p className="text-sm">{insight}</p>
-      </CardContent>
-    </Card>
+    <div className="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3">
+      <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+      <p className="text-sm text-foreground/80">{insight}</p>
+    </div>
   );
 }

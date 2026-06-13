@@ -66,6 +66,12 @@ class VectorStoreProtocol(Protocol):
         """Create collection if it does not exist."""
         ...
 
+    async def scroll_by_doc_id(
+        self, doc_id: str, limit: int = 100, offset: int = 0
+    ) -> list[VectorSearchResult]:
+        """Fetch chunks for a document using scroll — no query vector needed."""
+        ...
+
     async def health_check(self) -> bool:
         """Return True when the vector store is reachable."""
         ...
@@ -251,6 +257,46 @@ class QdrantVectorStore:
         except Exception as exc:
             raise VectorStoreError(f"Search failed: {exc}") from exc
 
+    async def scroll_by_doc_id(
+        self, doc_id: str, limit: int = 100, offset: int = 0
+    ) -> list[VectorSearchResult]:
+        """Fetch chunks for a document using Qdrant scroll (no query vector)."""
+        from qdrant_client.http.models import FieldCondition, Filter, MatchValue
+
+        try:
+            response = await self._client.scroll(
+                collection_name=self._collection,
+                scroll_filter=Filter(
+                    must=[FieldCondition(key="doc_id", match=MatchValue(value=doc_id))]
+                ),
+                limit=limit,
+                offset=offset,
+                with_payload=True,
+                with_vectors=False,
+            )
+            results: list[VectorSearchResult] = []
+            for point in response[0]:
+                payload = point.payload or {}
+                results.append(
+                    VectorSearchResult(
+                        id=str(point.id),
+                        text=payload.get("text", ""),
+                        score=1.0,
+                        doc_id=payload.get("doc_id", ""),
+                        source_file=payload.get("source_file", ""),
+                        page_number=payload.get("page_number", 0),
+                        chunk_index=payload.get("chunk_index", 0),
+                        chunk_strategy=payload.get("chunk_strategy", ""),
+                    )
+                )
+            return results
+        except VectorStoreError:
+            raise
+        except Exception as exc:
+            raise VectorStoreError(
+                f"Scroll failed for doc '{doc_id}': {exc}"
+            ) from exc
+
     # -- delete ---------------------------------------------------------------
 
     async def delete_by_doc_id(self, doc_id: str) -> None:
@@ -375,6 +421,26 @@ class InMemoryVectorStore:
                 )
             )
         return results
+
+    async def scroll_by_doc_id(
+        self, doc_id: str, limit: int = 100, offset: int = 0
+    ) -> list[VectorSearchResult]:
+        matching = [v for v in self._store if v.doc_id == doc_id]
+        matching.sort(key=lambda v: v.chunk_index)
+        sliced = matching[offset : offset + limit]
+        return [
+            VectorSearchResult(
+                id=v.id,
+                text=v.text,
+                score=1.0,
+                doc_id=v.doc_id,
+                source_file=v.source_file,
+                page_number=v.page_number,
+                chunk_index=v.chunk_index,
+                chunk_strategy=v.chunk_strategy,
+            )
+            for v in sliced
+        ]
 
     async def delete_by_doc_id(self, doc_id: str) -> None:
         self._store = [v for v in self._store if v.doc_id != doc_id]

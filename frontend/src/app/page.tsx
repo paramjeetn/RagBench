@@ -8,7 +8,7 @@ import { RadarChart } from "@/components/dashboard/radar-chart";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { InsightCard } from "@/components/dashboard/insight-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, FlaskConical } from "lucide-react";
+import { Loader2, FlaskConical, ArrowRight } from "lucide-react";
 
 export default function DashboardPage() {
   const [comparison, setComparison] = useState<EvalCompareResponse | null>(null);
@@ -42,7 +42,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -50,7 +50,8 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
-        <p className="text-sm">Failed to load dashboard: {error}</p>
+        <p className="text-sm font-medium">Failed to load dashboard</p>
+        <p className="text-xs">{error}</p>
         <p className="text-xs">Make sure the backend is running on port 8000.</p>
       </div>
     );
@@ -58,17 +59,28 @@ export default function DashboardPage() {
 
   if (!comparison || runs.length < 2) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-4 text-muted-foreground">
-        <FlaskConical className="h-12 w-12" />
-        <div className="text-center">
-          <p className="text-lg font-medium">Welcome to RAG Eval System</p>
-          <p className="text-sm">
-            Run at least 2 evaluations to see comparison metrics here.
-          </p>
-          <p className="mt-1 text-xs">
-            {runs.length} completed run{runs.length !== 1 ? "s" : ""} so far.
-          </p>
+      <div className="flex h-full flex-col items-center justify-center gap-6">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+          <FlaskConical className="h-8 w-8 text-primary" />
         </div>
+        <div className="text-center">
+          <p className="text-xl font-semibold tracking-tight">Welcome to RagBench</p>
+          <p className="mt-1.5 max-w-xs text-sm text-muted-foreground">
+            Run at least 2 evaluations to see a metric comparison and radar chart here.
+          </p>
+          {runs.length === 1 && (
+            <p className="mt-1 text-xs text-primary font-medium">
+              1 run completed — 1 more to go.
+            </p>
+          )}
+        </div>
+        <a
+          href="/evaluate"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+        >
+          Go to Evaluate
+          <ArrowRight className="h-3.5 w-3.5" />
+        </a>
       </div>
     );
   }
@@ -81,11 +93,14 @@ export default function DashboardPage() {
   const metricsB = (comparison.run_b.metrics ?? {}) as Record<string, number>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Comparing {labelA} vs {labelB}
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <span>{labelA}</span>
+          <ArrowRight className="h-3 w-3" />
+          <span className="text-foreground font-medium">{labelB}</span>
         </p>
       </div>
 
@@ -103,8 +118,8 @@ export default function DashboardPage() {
 
       {/* Radar Chart */}
       <Card>
-        <CardHeader>
-          <CardTitle>Metric Comparison</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold">Metric Comparison</CardTitle>
         </CardHeader>
         <CardContent>
           <RadarChart
@@ -119,7 +134,7 @@ export default function DashboardPage() {
       {/* Insights */}
       {comparison.insights.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Insights</h2>
+          <h2 className="text-base font-semibold">Insights</h2>
           {comparison.insights.map((insight, i) => (
             <InsightCard key={i} insight={insight} />
           ))}

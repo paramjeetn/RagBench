@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatScore, formatDelta } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 interface MetricCardProps {
   name: string;
@@ -7,30 +8,39 @@ interface MetricCardProps {
   delta: number;
 }
 
+function scoreColor(value: number) {
+  if (value >= 0.85) return "text-emerald-600";
+  if (value >= 0.70) return "text-amber-500";
+  return "text-red-500";
+}
+
+function scoreBg(value: number) {
+  if (value >= 0.85) return "bg-emerald-50 border-emerald-100";
+  if (value >= 0.70) return "bg-amber-50 border-amber-100";
+  return "bg-red-50 border-red-100";
+}
+
 export function MetricCard({ name, value, delta }: MetricCardProps) {
   const label = name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const TrendIcon = delta > 0 ? TrendingUp : delta < 0 ? TrendingDown : Minus;
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {label}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{formatScore(value)}</div>
-        <p
-          className={`text-xs font-medium ${
-            delta > 0
-              ? "text-green-600"
-              : delta < 0
-              ? "text-red-600"
-              : "text-muted-foreground"
-          }`}
-        >
-          {formatDelta(delta)} from previous
-        </p>
-      </CardContent>
-    </Card>
+    <div className={cn("rounded-xl border p-4 transition-shadow hover:shadow-sm", scoreBg(value))}>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <p className={cn("mt-2 text-3xl font-bold tabular-nums", scoreColor(value))}>
+        {formatScore(value)}
+      </p>
+      <div
+        className={cn(
+          "mt-2 flex items-center gap-1 text-xs font-medium",
+          delta > 0 ? "text-emerald-600" : delta < 0 ? "text-red-500" : "text-muted-foreground"
+        )}
+      >
+        <TrendIcon className="h-3 w-3" />
+        <span>{formatDelta(delta)} vs prev</span>
+      </div>
+    </div>
   );
 }

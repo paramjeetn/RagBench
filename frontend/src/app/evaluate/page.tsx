@@ -15,7 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Play } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, Play, Database } from "lucide-react";
 import { UploadDataset } from "@/components/evaluate/upload-dataset";
 
 export default function EvaluatePage() {
@@ -46,7 +47,6 @@ export default function EvaluatePage() {
       .finally(() => setLoading(false));
   }, [loadRuns]);
 
-  // Refresh run history when active run completes
   useEffect(() => {
     if (activeRun && activeRun.status !== "running") {
       loadRuns();
@@ -77,7 +77,7 @@ export default function EvaluatePage() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -85,7 +85,12 @@ export default function EvaluatePage() {
   if (viewingRun) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Evaluation Results</h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Evaluation Results</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Per-question breakdown and retrieved context.
+          </p>
+        </div>
         <ResultDetail run={viewingRun} onBack={() => setViewingRun(null)} />
       </div>
     );
@@ -93,55 +98,73 @@ export default function EvaluatePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Evaluate</h1>
-
-      {/* Start new run */}
-      <div className="flex items-end gap-3">
-        <div className="w-64 space-y-1">
-          <label className="text-xs text-muted-foreground">Dataset</label>
-          <Select value={selectedDataset} onValueChange={(v) => v && setSelectedDataset(v)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select dataset" />
-            </SelectTrigger>
-            <SelectContent>
-              {datasets.map((ds) => (
-                <SelectItem key={ds.id} value={ds.id}>
-                  {ds.name} ({ds.item_count} items)
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button
-          onClick={startRun}
-          disabled={!selectedDataset || starting || activeRun?.status === "running"}
-        >
-          {starting ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Play className="mr-2 h-4 w-4" />
-          )}
-          Run Evaluation
-        </Button>
-        <UploadDataset
-          onUploaded={(ds) => {
-            setDatasets((prev) => [...prev, ds]);
-            setSelectedDataset(ds.id);
-          }}
-        />
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Evaluate</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Run RAG Triad evaluation against a Q&amp;A dataset.
+        </p>
       </div>
 
-      {/* Active run progress */}
-      {activeRun?.status === "running" && activeRun.progress && (
-        <ProgressBar
-          completed={activeRun.progress.completed}
-          total={activeRun.progress.total}
-        />
-      )}
+      {/* Run controls */}
+      <Card>
+        <CardContent className="pt-4 pb-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <Database className="h-3 w-3" />
+                Dataset
+              </label>
+              <Select value={selectedDataset} onValueChange={(v) => v && setSelectedDataset(v)}>
+                <SelectTrigger className="h-9 w-64">
+                  <SelectValue placeholder="Select dataset" />
+                </SelectTrigger>
+                <SelectContent>
+                  {datasets.map((ds) => (
+                    <SelectItem key={ds.id} value={ds.id}>
+                      {ds.name}
+                      <span className="ml-1.5 text-muted-foreground">({ds.item_count} items)</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              onClick={startRun}
+              disabled={!selectedDataset || starting || activeRun?.status === "running"}
+              size="sm"
+              className="h-9 gap-2"
+            >
+              {starting ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Play className="h-3.5 w-3.5" />
+              )}
+              Run Evaluation
+            </Button>
+            <UploadDataset
+              onUploaded={(ds) => {
+                setDatasets((prev) => [...prev, ds]);
+                setSelectedDataset(ds.id);
+              }}
+            />
+          </div>
+
+          {/* Active run progress */}
+          {activeRun?.status === "running" && activeRun.progress && (
+            <div className="mt-4 border-t pt-4">
+              <ProgressBar
+                completed={activeRun.progress.completed}
+                total={activeRun.progress.total}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Run history */}
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold">History</h2>
+        <h2 className="text-base font-semibold">History</h2>
         <RunHistory runs={runs} onViewRun={handleViewRun} />
       </div>
     </div>

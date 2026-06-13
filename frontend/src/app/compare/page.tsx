@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, GitCompareArrows } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function ComparePage() {
   const [runs, setRuns] = useState<EvalRunResponse[]>([]);
@@ -52,9 +53,7 @@ export default function ComparePage() {
     }
     setLoading(true);
     api
-      .get<EvalCompareResponse>(
-        `/api/eval/compare?run_a=${runAId}&run_b=${runBId}`
-      )
+      .get<EvalCompareResponse>(`/api/eval/compare?run_a=${runAId}&run_b=${runBId}`)
       .then(setComparison)
       .catch(() => setComparison(null))
       .finally(() => setLoading(false));
@@ -67,54 +66,67 @@ export default function ComparePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Compare Runs</h1>
-
-      {/* Run selectors */}
-      <div className="flex gap-4">
-        <div className="w-64 space-y-1">
-          <label className="text-xs text-muted-foreground">Run A (baseline)</label>
-          <Select value={runAId} onValueChange={(v) => v && setRunAId(v)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select run" />
-            </SelectTrigger>
-            <SelectContent>
-              {runs.map((r) => (
-                <SelectItem key={r.id} value={r.id}>
-                  {runLabel(r)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-64 space-y-1">
-          <label className="text-xs text-muted-foreground">Run B (experiment)</label>
-          <Select value={runBId} onValueChange={(v) => v && setRunBId(v)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select run" />
-            </SelectTrigger>
-            <SelectContent>
-              {runs.map((r) => (
-                <SelectItem key={r.id} value={r.id}>
-                  {runLabel(r)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Compare Runs</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Side-by-side metric and configuration diff between two eval runs.
+        </p>
       </div>
 
+      {/* Run selectors */}
+      <Card>
+        <CardContent className="pt-4 pb-4">
+          <div className="flex flex-wrap gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Baseline (Run A)</label>
+              <Select value={runAId} onValueChange={(v) => v && setRunAId(v)}>
+                <SelectTrigger className="h-9 w-60">
+                  <SelectValue placeholder="Select run" />
+                </SelectTrigger>
+                <SelectContent>
+                  {runs.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {runLabel(r)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end pb-0.5">
+              <GitCompareArrows className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Experiment (Run B)</label>
+              <Select value={runBId} onValueChange={(v) => v && setRunBId(v)}>
+                <SelectTrigger className="h-9 w-60">
+                  <SelectValue placeholder="Select run" />
+                </SelectTrigger>
+                <SelectContent>
+                  {runs.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {runLabel(r)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {loading && (
-        <div className="flex justify-center py-8">
+        <div className="flex justify-center py-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {comparison && (
-        <>
+        <div className="space-y-5">
           {/* Radar chart */}
           <Card>
-            <CardHeader>
-              <CardTitle>Metric Comparison</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold">Metric Comparison</CardTitle>
             </CardHeader>
             <CardContent>
               <RadarChart
@@ -126,16 +138,16 @@ export default function ComparePage() {
             </CardContent>
           </Card>
 
-          {/* Metric deltas table */}
+          {/* Metric deltas */}
           <Card>
-            <CardHeader>
-              <CardTitle>Metric Deltas</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold">Metric Deltas</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Metric</TableHead>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="pl-6">Metric</TableHead>
                     <TableHead>{labelA}</TableHead>
                     <TableHead>{labelB}</TableHead>
                     <TableHead>Delta</TableHead>
@@ -147,23 +159,20 @@ export default function ComparePage() {
                     const metricsB = comparison.run_b.metrics as Record<string, number> | undefined;
                     return (
                       <TableRow key={key}>
-                        <TableCell className="font-medium">
+                        <TableCell className="pl-6 font-medium">
                           {key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="tabular-nums">
                           {metricsA?.[key] != null ? formatScore(metricsA[key]) : "-"}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="tabular-nums">
                           {metricsB?.[key] != null ? formatScore(metricsB[key]) : "-"}
                         </TableCell>
                         <TableCell
-                          className={
-                            delta > 0
-                              ? "text-green-600"
-                              : delta < 0
-                              ? "text-red-600"
-                              : ""
-                          }
+                          className={cn(
+                            "tabular-nums font-medium",
+                            delta > 0 ? "text-green-600" : delta < 0 ? "text-red-500" : "text-muted-foreground"
+                          )}
                         >
                           {formatDelta(delta)}
                         </TableCell>
@@ -178,14 +187,14 @@ export default function ComparePage() {
           {/* Config diff */}
           {comparison.config_diff.length > 0 && (
             <Card>
-              <CardHeader>
-                <CardTitle>Configuration Differences</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-semibold">Configuration Differences</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Setting</TableHead>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="pl-6">Setting</TableHead>
                       <TableHead>{labelA}</TableHead>
                       <TableHead>{labelB}</TableHead>
                     </TableRow>
@@ -193,13 +202,13 @@ export default function ComparePage() {
                   <TableBody>
                     {comparison.config_diff.map((diff, i) => (
                       <TableRow key={i}>
-                        <TableCell className="font-medium">
+                        <TableCell className="pl-6 font-medium">
                           {String(diff.field)}
                         </TableCell>
-                        <TableCell className="font-mono text-xs">
+                        <TableCell className="font-mono text-xs text-muted-foreground">
                           {String(diff.value_a)}
                         </TableCell>
-                        <TableCell className="font-mono text-xs">
+                        <TableCell className="font-mono text-xs text-foreground">
                           {String(diff.value_b)}
                         </TableCell>
                       </TableRow>
@@ -213,19 +222,34 @@ export default function ComparePage() {
           {/* Insights */}
           {comparison.insights.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold">Insights</h2>
+              <h2 className="text-base font-semibold">Insights</h2>
               {comparison.insights.map((insight, i) => (
                 <InsightCard key={i} insight={insight} />
               ))}
             </div>
           )}
-        </>
+        </div>
       )}
 
       {!loading && !comparison && runAId && runBId && runAId !== runBId && (
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="py-8 text-center text-sm text-muted-foreground">
           Failed to load comparison.
         </p>
+      )}
+
+      {runs.length < 2 && (
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+          <GitCompareArrows className="h-8 w-8 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">
+            Complete at least 2 evaluation runs to compare them here.
+          </p>
+          <a
+            href="/evaluate"
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            Go to Evaluate →
+          </a>
+        </div>
       )}
     </div>
   );

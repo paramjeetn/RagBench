@@ -6,9 +6,9 @@ import type { DocumentResponse } from "@/lib/types";
 import { useChatContext } from "@/context/chat-context";
 import { MessageList } from "@/components/chat/message-list";
 import { MessageInput } from "@/components/chat/message-input";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { Trash2, FileText } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function ChatPage() {
   const { messages, streaming, sendMessage, clearMessages } = useChatContext();
@@ -26,11 +26,16 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Chat</h1>
+    <div className="relative flex h-full flex-col">
+      {/* Header */}
+      <div className="flex shrink-0 items-center justify-between pb-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Chat</h1>
+          <p className="text-sm text-muted-foreground">Ask questions against your ingested documents.</p>
+        </div>
         {messages.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={clearMessages}>
+          <Button variant="ghost" size="sm" onClick={clearMessages} className="gap-1.5 text-muted-foreground">
+            <Trash2 className="h-3.5 w-3.5" />
             Clear
           </Button>
         )}
@@ -38,26 +43,43 @@ export default function ChatPage() {
 
       {/* Document filter */}
       {documents.length > 0 && (
-        <div className="flex flex-wrap gap-1 py-2">
-          {documents.map((doc) => (
-            <Badge
-              key={doc.id}
-              variant={selectedDocIds.includes(doc.id) ? "default" : "outline"}
-              className="cursor-pointer"
-              onClick={() => toggleDoc(doc.id)}
+        <div className="flex shrink-0 flex-wrap gap-1.5 border-b pb-3 mb-3">
+          {documents.map((doc) => {
+            const active = selectedDocIds.includes(doc.id);
+            return (
+              <button
+                key={doc.id}
+                onClick={() => toggleDoc(doc.id)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                  active
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                )}
+              >
+                <FileText className="h-3 w-3" />
+                {doc.filename}
+              </button>
+            );
+          })}
+          {selectedDocIds.length > 0 && (
+            <button
+              onClick={() => setSelectedDocIds([])}
+              className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-1"
             >
-              {doc.filename}
-              {selectedDocIds.includes(doc.id) && (
-                <X className="ml-1 h-3 w-3" />
-              )}
-            </Badge>
-          ))}
+              Clear filter
+            </button>
+          )}
         </div>
       )}
 
-      <MessageList messages={messages} />
+      {/* Messages — scrolls behind the floating input */}
+      <div className="min-h-0 flex-1 overflow-y-auto pb-24 pr-1">
+        <MessageList messages={messages} />
+      </div>
 
-      <div className="pt-4">
+      {/* Floating input pinned to bottom */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-6 pb-1">
         <MessageInput
           onSend={(q) => sendMessage(q, selectedDocIds)}
           disabled={streaming}

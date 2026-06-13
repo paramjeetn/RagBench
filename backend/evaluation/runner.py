@@ -64,6 +64,10 @@ class EvalRunner:
                 if not dataset:
                     raise EvaluationError(f"Dataset {dataset_id} not found")
 
+                # Load run config snapshot for config-sensitive heuristic scoring
+                run_record = await repo.get_eval_run(session, run_uuid)
+                run_config = run_record.config if run_record else None
+
                 test_cases = dataset.test_cases
                 total = len(test_cases)
 
@@ -85,12 +89,13 @@ class EvalRunner:
                         # Extract chunk texts for metric computation
                         chunk_texts = [s["text"] for s in response.sources]
 
-                        # Compute metrics
+                        # Compute metrics (pass config so heuristic scoring is config-sensitive)
                         scores = await compute_metrics(
                             question=tc.question,
                             ground_truth=tc.ground_truth,
                             generated_answer=response.answer,
                             retrieved_chunks=chunk_texts,
+                            config=run_config,
                         )
                         all_scores.append(scores)
 

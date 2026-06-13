@@ -92,32 +92,14 @@ async def get_document(
     if doc is None:
         raise DocumentNotFoundError()
 
-    # Retrieve all chunks for this document from Qdrant
-    # We search with a zero vector to get all chunks, using a large top_k
-    from embedding.embedder import create_embedder
-
-    embedder = create_embedder()
-    dim = embedder.dimension
-    zero_vector = [0.0] * dim
-
-    all_chunks = await vector_store.search(
-        query_vector=zero_vector,
-        top_k=doc.chunk_count + 100,  # ensure we get all
-        doc_ids=[str(doc.id)],
+    # Use scroll API to fetch chunks for this document (no query vector needed)
+    offset = (page - 1) * page_size
+    page_chunks = await vector_store.scroll_by_doc_id(
+        doc_id=str(doc.id), limit=page_size, offset=offset
     )
+    page_chunks.sort(key=lambda c: c.chunk_index)
 
-    # Sort by chunk_index
-    all_chunks.sort(key=lambda c: c.chunk_index)
-
-    # Paginate
-    total = len(all_chunks)
-    start = (page - 1) * page_size
-    end = start + page_size
-    page_chunks = all_chunks[start:end]
-
-    chunk_items = [
-        ChunkItem(index=c.chunk_index, text=c.text) for c in page_chunks
-    ]
+    chunk_items = [ChunkItem(index=c.chunk_index, text=c.text) for c in page_chunks]
 
     return DocumentDetailResponse(
         id=str(doc.id),
@@ -128,7 +110,7 @@ async def get_document(
         uploaded_at=doc.uploaded_at,
         chunks=PaginatedChunks(
             items=chunk_items,
-            total=total,
+            total=doc.chunk_count,
             page=page,
             page_size=page_size,
         ),

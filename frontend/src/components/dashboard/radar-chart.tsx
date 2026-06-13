@@ -22,8 +22,8 @@ export function RadarChart({ metricsA, metricsB, labelA, labelB }: RadarChartPro
   const allKeys = new Set([...Object.keys(metricsA), ...Object.keys(metricsB)]);
   const data = Array.from(allKeys).map((key) => ({
     metric: key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-    [labelA]: metricsA[key] ?? 0,
-    [labelB]: metricsB[key] ?? 0,
+    A: metricsA[key] ?? 0,
+    B: metricsB[key] ?? 0,
   }));
 
   return (
@@ -34,14 +34,14 @@ export function RadarChart({ metricsA, metricsB, labelA, labelB }: RadarChartPro
         <PolarRadiusAxis angle={90} domain={[0, 1]} tick={{ fontSize: 10 }} />
         <Radar
           name={labelA}
-          dataKey={labelA}
+          dataKey="A"
           stroke="hsl(221, 83%, 53%)"
           fill="hsl(221, 83%, 53%)"
           fillOpacity={0.15}
         />
         <Radar
           name={labelB}
-          dataKey={labelB}
+          dataKey="B"
           stroke="hsl(142, 71%, 45%)"
           fill="hsl(142, 71%, 45%)"
           fillOpacity={0.15}

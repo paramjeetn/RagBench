@@ -203,5 +203,7 @@ Each metric maps to a specific hyperparameter, so you know exactly what to tune.
 
 ## Further Reading
 
-- [CONCEPTS.md](CONCEPTS.md) — Deep-dive into RAG architecture, chunking strategies, hybrid search, evaluation methodology
-- [PRODUCT.md](PRODUCT.md) — Product experience, UI wireframes, data flow diagrams
+- [docs/architecture.md](docs/architecture.md) — Complete technical architecture: pipelines, schemas, API, config-scoped collections
+- [docs/concepts.md](docs/concepts.md) — RAG theory, chunking strategies, hybrid search, evaluation methodology
+- [docs/product.md](docs/product.md) — Product experience, UI wireframes, data flow diagrams
+- [docs/testing-report.md](docs/testing-report.md) — End-to-end test run results and issues resolved

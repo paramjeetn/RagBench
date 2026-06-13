@@ -39,11 +39,18 @@ export default function DocumentsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Documents</h1>
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Documents</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Upload and manage documents for your RAG pipeline.
+        </p>
+      </div>
+
       <UploadZone onUploaded={handleUploaded} />
 
       {loading ? (
-        <div className="flex justify-center py-8">
+        <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : (
