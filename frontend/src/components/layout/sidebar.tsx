@@ -28,17 +28,17 @@ export function Sidebar({ onOpenSettings }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-52 flex-col border-r bg-card">
+    <aside className="flex h-screen w-56 flex-col border-r border-border/50 bg-card">
       {/* Logo */}
-      <div className="flex h-14 items-center gap-2.5 border-b px-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+      <div className="flex h-16 items-center gap-3 border-b border-border/50 px-4">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary shadow-sm">
           <FlaskConical className="h-4 w-4 text-primary-foreground" />
         </div>
-        <span className="text-sm font-semibold tracking-tight">RagBench</span>
+        <span className="text-sm font-semibold tracking-tight text-foreground">RagBench</span>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 p-2 pt-3">
+      <nav className="flex-1 space-y-1 p-3 pt-4">
         {navItems.map((item) => {
           const active =
             item.href === "/"
@@ -49,10 +49,10 @@ export function Sidebar({ onOpenSettings }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-100",
+                "group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150",
                 active
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-primary/8 text-primary shadow-sm"
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               )}
             >
               <item.icon
@@ -63,7 +63,7 @@ export function Sidebar({ onOpenSettings }: SidebarProps) {
               />
               {item.label}
               {active && (
-                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                <span className="ml-auto h-2 w-2 rounded-full bg-primary" />
               )}
             </Link>
           );
@@ -71,10 +71,10 @@ export function Sidebar({ onOpenSettings }: SidebarProps) {
       </nav>
 
       {/* Settings */}
-      <div className="border-t p-2">
+      <div className="border-t border-border/50 p-3">
         <button
           onClick={onOpenSettings}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-150 hover:bg-muted/60 hover:text-foreground"
         >
           <Settings className="h-4 w-4 shrink-0" />
           Pipeline Settings

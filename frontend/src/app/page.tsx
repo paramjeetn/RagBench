@@ -59,27 +59,27 @@ export default function DashboardPage() {
 
   if (!comparison || runs.length < 2) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-6">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+      <div className="flex h-full flex-col items-center justify-center gap-7">
+        <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary/8 shadow-sm">
           <FlaskConical className="h-8 w-8 text-primary" />
         </div>
         <div className="text-center">
-          <p className="text-xl font-semibold tracking-tight">Welcome to RagBench</p>
-          <p className="mt-1.5 max-w-xs text-sm text-muted-foreground">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Welcome to RagBench</p>
+          <p className="mt-2 max-w-xs text-sm text-muted-foreground">
             Run at least 2 evaluations to see a metric comparison and radar chart here.
           </p>
           {runs.length === 1 && (
-            <p className="mt-1 text-xs text-primary font-medium">
+            <p className="mt-2 text-xs text-primary font-semibold">
               1 run completed — 1 more to go.
             </p>
           )}
         </div>
         <a
           href="/evaluate"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200"
         >
           Go to Evaluate
-          <ArrowRight className="h-3.5 w-3.5" />
+          <ArrowRight className="h-4 w-4" />
         </a>
       </div>
     );
@@ -93,19 +93,19 @@ export default function DashboardPage() {
   const metricsB = (comparison.run_b.metrics ?? {}) as Record<string, number>;
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+        <p className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground font-medium">
           <span>{labelA}</span>
-          <ArrowRight className="h-3 w-3" />
-          <span className="text-foreground font-medium">{labelB}</span>
+          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/60" />
+          <span className="text-foreground">{labelB}</span>
         </p>
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
         {Object.entries(metricsB).map(([key, value]) => (
           <MetricCard
             key={key}
@@ -133,11 +133,13 @@ export default function DashboardPage() {
 
       {/* Insights */}
       {comparison.insights.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-base font-semibold">Insights</h2>
-          {comparison.insights.map((insight, i) => (
-            <InsightCard key={i} insight={insight} />
-          ))}
+        <div className="space-y-4 pt-4">
+          <h2 className="text-lg font-semibold text-foreground">Insights</h2>
+          <div className="space-y-3">
+            {comparison.insights.map((insight, i) => (
+              <InsightCard key={i} insight={insight} />
+            ))}
+          </div>
         </div>
       )}
     </div>
