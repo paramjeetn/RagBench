@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Sheet,
   SheetContent,
@@ -90,6 +90,8 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const [config, setConfig] = useState<PipelineConfigResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [polling, setPolling] = useState(false);
+  const [applied, setApplied] = useState(false);
+  const animTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const [strategy, setStrategy] = useState("");
   const [chunkSize, setChunkSize] = useState(0);
@@ -139,6 +141,22 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     setEmbModel(firstModel);
   };
 
+  const runSuccessAnimation = useCallback(() => {
+    // Clear any pending animation timers from a previous apply
+    animTimers.current.forEach(clearTimeout);
+    animTimers.current = [];
+
+    // green "Applied!" → 800ms → close
+    setApplied(true);
+    setSaving(false);
+    const t1 = setTimeout(() => {
+      onOpenChange(false);
+      const t2 = setTimeout(() => setApplied(false), 200);
+      animTimers.current.push(t2);
+    }, 800);
+    animTimers.current.push(t1);
+  }, [onOpenChange]);
+
   useEffect(() => {
     if (!polling) return;
     const interval = setInterval(async () => {
@@ -146,13 +164,18 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
       if (!cfg.status.reindexing) {
         setPolling(false);
         setConfig(cfg);
+        runSuccessAnimation();
       }
     }, 2000);
     return () => clearInterval(interval);
-  }, [polling]);
+  }, [polling, runSuccessAnimation]);
 
   const handleApply = async () => {
     if (!config) return;
+    // Clear any leftover timers from a previous apply before starting fresh
+    animTimers.current.forEach(clearTimeout);
+    animTimers.current = [];
+    setApplied(false);
     setSaving(true);
     const update: PipelineConfigUpdateRequest = {};
 
@@ -177,12 +200,17 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
       update.embedding = { provider: embProvider, model: embModel };
     }
 
-    const result = await api.put<PipelineConfigResponse>("/api/config/", update);
-    setConfig(result);
-    setSaving(false);
+    const [result] = await Promise.all([
+      api.put<PipelineConfigResponse>("/api/config/", update),
+      new Promise((res) => setTimeout(res, 1200)),
+    ]);
+    setConfig(result as PipelineConfigResponse);
 
-    if (result.status.reindexing) {
+    if ((result as PipelineConfigResponse).status.reindexing) {
+      setSaving(false);
       setPolling(true);
+    } else {
+      runSuccessAnimation();
     }
   };
 
@@ -379,12 +407,18 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
 
             <Button
               onClick={handleApply}
-              disabled={saving || polling}
-              className="w-full"
+              disabled={saving || polling || applied}
               size="sm"
+              className="w-full transition-all duration-300"
+              style={applied ? { backgroundColor: "#16a34a", color: "white" } : undefined}
             >
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {saving ? "Applying…" : "Apply Changes"}
+              {applied ? (
+                <><CheckCircle2 className="mr-2 h-4 w-4" />Applied!</>
+              ) : saving || polling ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{polling ? "Re-indexing…" : "Applying…"}</>
+              ) : (
+                "Apply Changes"
+              )}
             </Button>
           </div>
         )}

@@ -126,8 +126,10 @@ async def create_eval_run(
     document_ids: list,
     config: dict,
     progress_total: int,
+    name: str | None = None,
 ) -> EvalRun:
     run = EvalRun(
+        name=name,
         dataset_id=dataset_id,
         document_ids=document_ids,
         config=config,

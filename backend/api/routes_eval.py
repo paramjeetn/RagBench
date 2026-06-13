@@ -73,6 +73,7 @@ def _run_to_response(
 
     return EvalRunResponse(
         id=str(run.id),
+        name=getattr(run, "name", None),
         status=run.status,
         dataset_id=str(run.dataset_id),
         dataset_name=ds_name,
@@ -115,6 +116,7 @@ async def start_eval_run(
         document_ids=document_ids,
         config=config_snapshot,
         progress_total=total_questions,
+        name=body.name or None,
     )
 
     # Flush to ensure the run is persisted before the background task starts

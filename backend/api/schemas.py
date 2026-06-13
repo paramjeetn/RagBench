@@ -134,6 +134,7 @@ class DatasetDetailResponse(BaseModel):
 class EvalRunRequest(BaseModel):
     dataset_id: str
     document_ids: list[str] | None = None
+    name: str | None = None
 
 
 class EvalResultResponse(BaseModel):
@@ -158,6 +159,7 @@ class EvalRunResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
+    name: str | None = None
     status: str
     dataset_id: str
     dataset_name: str | None = None

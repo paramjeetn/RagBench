@@ -16,8 +16,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Play, Database, TriangleAlert } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, Play, Database, TriangleAlert, XCircle } from "lucide-react";
 import { UploadDataset } from "@/components/evaluate/upload-dataset";
+
+function defaultRunName(cfg: PipelineConfigResponse): string {
+  const strategy = cfg.chunking.strategy;
+  const mode = cfg.retrieval.mode;
+  const rerank = cfg.retrieval.reranker_enabled ? "+rerank" : "";
+  const d = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${strategy}/${mode}${rerank} (${d})`;
+}
 
 export default function EvaluatePage() {
   const { activeRun, setActiveRun } = useEvalContext();
@@ -27,7 +36,10 @@ export default function EvaluatePage() {
   const [viewingRun, setViewingRun] = useState<EvalRunResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const [scoringAvailable, setScoringAvailable] = useState<boolean | null>(null);
+  const [runName, setRunName] = useState("");
+  const [pipelineConfig, setPipelineConfig] = useState<PipelineConfigResponse | null>(null);
 
   const loadRuns = useCallback(async () => {
     const allRuns = await api.get<EvalRunResponse[]>("/api/eval/runs");
@@ -48,7 +60,11 @@ export default function EvaluatePage() {
       .finally(() => setLoading(false));
 
     api.get<PipelineConfigResponse>("/api/config/")
-      .then((cfg) => setScoringAvailable(cfg.status.scoring_available))
+      .then((cfg) => {
+        setScoringAvailable(cfg.status.scoring_available);
+        setPipelineConfig(cfg);
+        setRunName(defaultRunName(cfg));
+      })
       .catch(() => {});
   }, [loadRuns]);
 
@@ -61,14 +77,18 @@ export default function EvaluatePage() {
   const startRun = async () => {
     if (!selectedDataset) return;
     setStarting(true);
+    setStartError(null);
     try {
       const run = await api.post<EvalRunResponse>("/api/eval/run", {
         dataset_id: selectedDataset,
+        name: runName.trim() || undefined,
       });
       setActiveRun(run);
       setRuns((prev) => [run, ...prev]);
+      if (pipelineConfig) setRunName(defaultRunName(pipelineConfig));
     } catch (err) {
-      console.error("Failed to start eval:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setStartError(msg);
     } finally {
       setStarting(false);
     }
@@ -116,13 +136,24 @@ export default function EvaluatePage() {
         <CardContent className="pt-4 pb-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Run name</label>
+              <Input
+                value={runName}
+                onChange={(e) => setRunName(e.target.value)}
+                placeholder="e.g. Hybrid baseline"
+                className="h-9 w-56"
+              />
+            </div>
+            <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                 <Database className="h-3 w-3" />
                 Dataset
               </label>
               <Select value={selectedDataset} onValueChange={(v) => v && setSelectedDataset(v)}>
                 <SelectTrigger className="h-9 w-64">
-                  <SelectValue placeholder="Select dataset" />
+                  <SelectValue placeholder="Select dataset">
+                    {datasets.find((ds) => ds.id === selectedDataset)?.name ?? "Select dataset"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {datasets.map((ds) => (
@@ -166,6 +197,14 @@ export default function EvaluatePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Start error */}
+      {startError && (
+        <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+          <p><span className="font-semibold">Failed to start evaluation:</span> {startError}</p>
+        </div>
+      )}
 
       {/* Scoring mode warning */}
       {scoringAvailable === false && (

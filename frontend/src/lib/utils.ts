@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function runLabel(run: EvalRunResponse): string {
+  if (run.name) return run.name;
   const cfg = run.config as Record<string, Record<string, unknown>> | undefined;
   const s = cfg?.chunking?.strategy ?? "?";
   const r = cfg?.retrieval?.reranker_enabled ? "+rerank" : "";

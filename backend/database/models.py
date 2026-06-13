@@ -59,6 +59,7 @@ class EvalRun(Base):
     __tablename__ = "eval_runs"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="running")
     dataset_id: Mapped[UUID] = mapped_column(ForeignKey("datasets.id"))
     document_ids: Mapped[list] = mapped_column(JSON, default=list)
