@@ -7,22 +7,27 @@ import { UploadZone } from "@/components/documents/upload-zone";
 import { DocumentList } from "@/components/documents/document-list";
 import { ChunkPreview } from "@/components/documents/chunk-preview";
 import { Loader2 } from "lucide-react";
+import { useProjectContext } from "@/context/project-context";
 
 export default function DocumentsPage() {
+  const { activeProject } = useProjectContext();
   const [documents, setDocuments] = useState<DocumentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewDoc, setViewDoc] = useState<DocumentResponse | null>(null);
 
   const loadDocs = useCallback(async () => {
     try {
-      const docs = await api.get<DocumentResponse[]>("/api/documents/");
+      const url = activeProject
+        ? `/api/documents/?project_id=${activeProject.id}`
+        : "/api/documents/";
+      const docs = await api.get<DocumentResponse[]>(url);
       setDocuments(docs);
     } catch (err) {
       console.error("Failed to load documents:", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeProject]);
 
   useEffect(() => {
     loadDocs();
@@ -47,7 +52,12 @@ export default function DocumentsPage() {
         </p>
       </div>
 
-      <UploadZone onUploaded={handleUploaded} />
+      {activeProject && (
+        <div className="text-xs text-muted-foreground border border-border/50 rounded-md px-3 py-2 bg-muted/20">
+          Uploading to project: <span className="font-medium text-foreground">{activeProject.name}</span>
+        </div>
+      )}
+      <UploadZone onUploaded={handleUploaded} projectId={activeProject?.id} />
 
       {loading ? (
         <div className="flex justify-center py-12">

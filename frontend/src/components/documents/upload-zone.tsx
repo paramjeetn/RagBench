@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 
 interface UploadZoneProps {
   onUploaded: (doc: DocumentResponse) => void;
+  projectId?: string | null;
 }
 
-export function UploadZone({ onUploaded }: UploadZoneProps) {
+export function UploadZone({ onUploaded, projectId }: UploadZoneProps) {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -21,7 +22,10 @@ export function UploadZone({ onUploaded }: UploadZoneProps) {
       try {
         const formData = new FormData();
         formData.append("file", file);
-        const doc = await api.upload<DocumentResponse>("/api/documents/", formData);
+        const url = projectId
+          ? `/api/documents/?project_id=${projectId}`
+          : "/api/documents/";
+        const doc = await api.upload<DocumentResponse>(url, formData);
         onUploaded(doc);
       } catch (err) {
         console.error("Upload failed:", err);
