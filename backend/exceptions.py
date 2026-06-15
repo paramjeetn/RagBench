@@ -10,6 +10,11 @@ class RAGEvalError(Exception):
         super().__init__(self.message)
 
 
+class ProjectNotFoundError(RAGEvalError):
+    def __init__(self, message: str = "Project not found"):
+        super().__init__(message=message, status_code=404)
+
+
 class DocumentNotFoundError(RAGEvalError):
     def __init__(self, message: str = "Document not found"):
         super().__init__(message=message, status_code=404)

@@ -37,7 +37,11 @@ class VectorStoreProtocol(Protocol):
     """Minimal interface every vector store must implement."""
 
     async def upsert(
-        self, doc_id: str, chunks: list[dict], vectors: list[list[float]]
+        self,
+        doc_id: str,
+        chunks: list[dict],
+        vectors: list[list[float]],
+        project_id: str | None = None,
     ) -> None:
         """Store chunks with their vectors.
 
@@ -50,8 +54,9 @@ class VectorStoreProtocol(Protocol):
         query_vector: list[float],
         top_k: int = 10,
         doc_ids: list[str] | None = None,
+        project_id: str | None = None,
     ) -> list[VectorSearchResult]:
-        """Search vectors, optionally filtered by doc_ids."""
+        """Search vectors, optionally filtered by doc_ids or project_id."""
         ...
 
     async def delete_by_doc_id(self, doc_id: str) -> None:
@@ -165,7 +170,11 @@ class QdrantVectorStore:
     # -- upsert ---------------------------------------------------------------
 
     async def upsert(
-        self, doc_id: str, chunks: list[dict], vectors: list[list[float]]
+        self,
+        doc_id: str,
+        chunks: list[dict],
+        vectors: list[list[float]],
+        project_id: str | None = None,
     ) -> None:
         from qdrant_client.http.models import PointStruct
 
@@ -173,20 +182,17 @@ class QdrantVectorStore:
             points: list[PointStruct] = []
             for chunk, vector in zip(chunks, vectors):
                 point_id = str(uuid.uuid4())
-                points.append(
-                    PointStruct(
-                        id=point_id,
-                        vector=vector,
-                        payload={
-                            "text": chunk["text"],
-                            "doc_id": doc_id,
-                            "source_file": chunk["source_file"],
-                            "page_number": chunk["page_number"],
-                            "chunk_index": chunk["chunk_index"],
-                            "chunk_strategy": chunk["chunk_strategy"],
-                        },
-                    )
-                )
+                payload = {
+                    "text": chunk["text"],
+                    "doc_id": doc_id,
+                    "source_file": chunk["source_file"],
+                    "page_number": chunk["page_number"],
+                    "chunk_index": chunk["chunk_index"],
+                    "chunk_strategy": chunk["chunk_strategy"],
+                }
+                if project_id is not None:
+                    payload["project_id"] = project_id
+                points.append(PointStruct(id=point_id, vector=vector, payload=payload))
 
             # Batch upsert in groups of 100
             for i in range(0, len(points), _UPSERT_BATCH_SIZE):
@@ -209,24 +215,26 @@ class QdrantVectorStore:
         query_vector: list[float],
         top_k: int = 10,
         doc_ids: list[str] | None = None,
+        project_id: str | None = None,
     ) -> list[VectorSearchResult]:
         from qdrant_client.http.models import (
             FieldCondition,
             Filter,
             MatchAny,
+            MatchValue,
         )
 
         try:
-            query_filter: Filter | None = None
+            must_conditions = []
             if doc_ids:
-                query_filter = Filter(
-                    must=[
-                        FieldCondition(
-                            key="doc_id",
-                            match=MatchAny(any=doc_ids),
-                        )
-                    ]
+                must_conditions.append(
+                    FieldCondition(key="doc_id", match=MatchAny(any=doc_ids))
                 )
+            if project_id:
+                must_conditions.append(
+                    FieldCondition(key="project_id", match=MatchValue(value=project_id))
+                )
+            query_filter: Filter | None = Filter(must=must_conditions) if must_conditions else None
 
             response = await self._client.query_points(
                 collection_name=self._collection,
