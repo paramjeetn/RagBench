@@ -3,7 +3,7 @@
 import json
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,6 +55,7 @@ def _dataset_to_detail(dataset) -> DatasetDetailResponse:
 @router.post("/", status_code=201, response_model=DatasetSummaryResponse)
 async def create_dataset(
     body: DatasetCreateRequest,
+    project_id: str | None = Query(default=None),
     session: AsyncSession = Depends(get_db),
 ):
     """Create a new test dataset with QA pairs."""
@@ -65,6 +66,7 @@ async def create_dataset(
         description=body.description,
         document_ids=body.document_ids,
         items=items,
+        project_id=UUID(project_id) if project_id else None,
     )
     return _dataset_to_summary(dataset)
 
@@ -74,6 +76,7 @@ async def upload_dataset(
     file: UploadFile = File(...),
     name: str = Form(...),
     document_ids: str = Form(...),
+    project_id: str | None = Form(default=None),
     session: AsyncSession = Depends(get_db),
 ):
     """Upload a test dataset from a JSON file.
@@ -97,16 +100,18 @@ async def upload_dataset(
         description=None,
         document_ids=doc_ids,
         items=items,
+        project_id=UUID(project_id) if project_id else None,
     )
     return _dataset_to_summary(dataset)
 
 
 @router.get("/", response_model=list[DatasetSummaryResponse])
 async def list_datasets(
+    project_id: str | None = Query(default=None),
     session: AsyncSession = Depends(get_db),
 ):
-    """List all test datasets."""
-    datasets = await repo.list_datasets(session)
+    """List test datasets, optionally filtered by project."""
+    datasets = await repo.list_datasets(session, project_id=UUID(project_id) if project_id else None)
     return [_dataset_to_summary(ds) for ds in datasets]
 
 

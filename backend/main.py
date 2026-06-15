@@ -92,12 +92,14 @@ async def health():
 # Include routers
 # ---------------------------------------------------------------------------
 
+from api.routes_projects import router as projects_router
 from api.routes_documents import router as documents_router
 from api.routes_query import router as query_router
 from api.routes_datasets import router as datasets_router
 from api.routes_eval import router as eval_router
 from api.routes_config import router as config_router
 
+app.include_router(projects_router)
 app.include_router(documents_router)
 app.include_router(query_router)
 app.include_router(datasets_router)

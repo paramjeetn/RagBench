@@ -117,6 +117,7 @@ async def start_eval_run(
         config=config_snapshot,
         progress_total=total_questions,
         name=body.name or None,
+        project_id=UUID(body.project_id) if body.project_id else None,
     )
 
     # Flush to ensure the run is persisted before the background task starts
@@ -140,16 +141,21 @@ async def start_eval_run(
 
 @router.get("/runs", response_model=list[EvalRunResponse])
 async def list_eval_runs(
+    project_id: str | None = Query(default=None),
     session: AsyncSession = Depends(get_db),
 ):
-    """List all evaluation runs with question/pass counts."""
-    # Load runs with their results and dataset relationship
+    """List evaluation runs, optionally filtered by project."""
+    from sqlalchemy import and_
+    filters = []
+    if project_id:
+        filters.append(EvalRun.project_id == UUID(project_id))
     result = await session.execute(
         select(EvalRun)
         .options(
             selectinload(EvalRun.eval_results),
             selectinload(EvalRun.dataset),
         )
+        .where(*filters)
         .order_by(EvalRun.created_at.desc())
     )
     runs = list(result.scalars().all())
