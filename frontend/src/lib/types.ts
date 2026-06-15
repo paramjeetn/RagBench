@@ -1,4 +1,20 @@
 // ---------------------------------------------------------------------------
+// Projects
+// ---------------------------------------------------------------------------
+
+export interface ProjectResponse {
+  id: string;
+  name: string;
+  description?: string | null;
+  created_at: string;
+}
+
+export interface ProjectCreateRequest {
+  name: string;
+  description?: string | null;
+}
+
+// ---------------------------------------------------------------------------
 // Documents
 // ---------------------------------------------------------------------------
 
