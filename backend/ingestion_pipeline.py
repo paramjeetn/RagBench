@@ -28,7 +28,7 @@ class IngestionPipeline:
         self.bm25 = bm25_index
 
     async def ingest(
-        self, file_bytes: bytes, filename: str, doc_id: str | None = None
+        self, file_bytes: bytes, filename: str, doc_id: str | None = None, project_id: str | None = None
     ) -> dict:
         """Parse, chunk, embed, store. Returns dict with doc info.
 
@@ -91,7 +91,7 @@ class IngestionPipeline:
 
             # 6. Store in vector store
             await self.vector_store.ensure_collection()
-            await self.vector_store.upsert(doc_id, chunk_dicts, vectors)
+            await self.vector_store.upsert(doc_id, chunk_dicts, vectors, project_id=project_id)
 
             # 7. Add to BM25 index
             bm25_docs = [

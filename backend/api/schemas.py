@@ -9,6 +9,24 @@ from pydantic import BaseModel, ConfigDict
 
 
 # ---------------------------------------------------------------------------
+# Projects
+# ---------------------------------------------------------------------------
+
+class ProjectCreateRequest(BaseModel):
+    name: str
+    description: str | None = None
+
+
+class ProjectResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    description: str | None = None
+    created_at: datetime
+
+
+# ---------------------------------------------------------------------------
 # Documents
 # ---------------------------------------------------------------------------
 
@@ -135,6 +153,7 @@ class EvalRunRequest(BaseModel):
     dataset_id: str
     document_ids: list[str] | None = None
     name: str | None = None
+    project_id: str | None = None
 
 
 class EvalResultResponse(BaseModel):

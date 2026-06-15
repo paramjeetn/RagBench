@@ -6,7 +6,40 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from database.models import Dataset, Document, EvalResult, EvalRun, TestCase
+from database.models import Dataset, Document, EvalResult, EvalRun, Project, TestCase
+
+
+# ---------------------------------------------------------------------------
+# Projects
+# ---------------------------------------------------------------------------
+
+async def create_project(
+    session: AsyncSession,
+    name: str,
+    description: str | None = None,
+) -> Project:
+    project = Project(name=name, description=description)
+    session.add(project)
+    await session.flush()
+    return project
+
+
+async def get_project(session: AsyncSession, project_id: UUID) -> Project | None:
+    return await session.get(Project, project_id)
+
+
+async def list_projects(session: AsyncSession) -> list[Project]:
+    result = await session.execute(select(Project).order_by(Project.created_at.desc()))
+    return list(result.scalars().all())
+
+
+async def delete_project(session: AsyncSession, project_id: UUID) -> bool:
+    project = await session.get(Project, project_id)
+    if project is None:
+        return False
+    await session.delete(project)
+    await session.flush()
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -20,6 +53,7 @@ async def create_document(
     chunk_count: int,
     chunk_strategy: str,
     file_bytes: bytes = b"",
+    project_id: UUID | None = None,
 ) -> Document:
     doc = Document(
         filename=filename,
@@ -27,6 +61,7 @@ async def create_document(
         chunk_count=chunk_count,
         chunk_strategy=chunk_strategy,
         file_bytes=file_bytes,
+        project_id=project_id,
     )
     session.add(doc)
     await session.flush()
@@ -37,8 +72,11 @@ async def get_document(session: AsyncSession, document_id: UUID) -> Document | N
     return await session.get(Document, document_id)
 
 
-async def list_documents(session: AsyncSession) -> list[Document]:
-    result = await session.execute(select(Document).order_by(Document.uploaded_at.desc()))
+async def list_documents(session: AsyncSession, project_id: UUID | None = None) -> list[Document]:
+    q = select(Document).order_by(Document.uploaded_at.desc())
+    if project_id is not None:
+        q = q.where(Document.project_id == project_id)
+    result = await session.execute(q)
     return list(result.scalars().all())
 
 
@@ -61,11 +99,13 @@ async def create_dataset(
     description: str | None,
     document_ids: list,
     items: list[dict],
+    project_id: UUID | None = None,
 ) -> Dataset:
     dataset = Dataset(
         name=name,
         description=description,
         document_ids=document_ids,
+        project_id=project_id,
     )
     session.add(dataset)
     await session.flush()
@@ -98,12 +138,15 @@ async def get_dataset(session: AsyncSession, dataset_id: UUID) -> Dataset | None
     return result.scalar_one_or_none()
 
 
-async def list_datasets(session: AsyncSession) -> list[Dataset]:
-    result = await session.execute(
+async def list_datasets(session: AsyncSession, project_id: UUID | None = None) -> list[Dataset]:
+    q = (
         select(Dataset)
         .options(selectinload(Dataset.test_cases))
         .order_by(Dataset.created_at.desc())
     )
+    if project_id is not None:
+        q = q.where(Dataset.project_id == project_id)
+    result = await session.execute(q)
     return list(result.scalars().all())
 
 
@@ -127,6 +170,7 @@ async def create_eval_run(
     config: dict,
     progress_total: int,
     name: str | None = None,
+    project_id: UUID | None = None,
 ) -> EvalRun:
     run = EvalRun(
         name=name,
@@ -134,6 +178,7 @@ async def create_eval_run(
         document_ids=document_ids,
         config=config,
         progress_total=progress_total,
+        project_id=project_id,
     )
     session.add(run)
     await session.flush()
@@ -149,10 +194,11 @@ async def get_eval_run(session: AsyncSession, run_id: UUID) -> EvalRun | None:
     return result.scalar_one_or_none()
 
 
-async def list_eval_runs(session: AsyncSession) -> list[EvalRun]:
-    result = await session.execute(
-        select(EvalRun).order_by(EvalRun.created_at.desc())
-    )
+async def list_eval_runs(session: AsyncSession, project_id: UUID | None = None) -> list[EvalRun]:
+    q = select(EvalRun).order_by(EvalRun.created_at.desc())
+    if project_id is not None:
+        q = q.where(EvalRun.project_id == project_id)
+    result = await session.execute(q)
     return list(result.scalars().all())
 
 

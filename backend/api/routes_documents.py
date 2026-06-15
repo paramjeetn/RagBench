@@ -37,10 +37,12 @@ def _doc_to_response(doc) -> DocumentResponse:
 @router.post("/", status_code=201, response_model=DocumentResponse)
 async def upload_document(
     file: UploadFile = File(...),
+    project_id: str | None = Query(default=None),
     session: AsyncSession = Depends(get_db),
     pipeline: IngestionPipeline = Depends(get_ingestion_pipeline),
 ):
     """Upload and ingest a document (PDF, MD, TXT, HTML)."""
+    from uuid import UUID as _UUID
     file_bytes = await file.read()
     filename = file.filename or "unknown"
 
@@ -56,11 +58,12 @@ async def upload_document(
         chunk_count=0,
         chunk_strategy="pending",
         file_bytes=file_bytes,
+        project_id=_UUID(project_id) if project_id else None,
     )
     db_doc_id = str(doc.id)
 
     # Run the ingestion pipeline with the DB doc_id so vectors match
-    result = await pipeline.ingest(file_bytes, filename, doc_id=db_doc_id)
+    result = await pipeline.ingest(file_bytes, filename, doc_id=db_doc_id, project_id=project_id)
 
     # Update the document with actual chunk info
     doc.chunk_count = result["chunk_count"]
@@ -72,10 +75,12 @@ async def upload_document(
 
 @router.get("/", response_model=list[DocumentResponse])
 async def list_documents(
+    project_id: str | None = Query(default=None),
     session: AsyncSession = Depends(get_db),
 ):
-    """List all uploaded documents."""
-    docs = await repo.list_documents(session)
+    """List uploaded documents, optionally filtered by project."""
+    from uuid import UUID as _UUID
+    docs = await repo.list_documents(session, project_id=_UUID(project_id) if project_id else None)
     return [_doc_to_response(doc) for doc in docs]
 
 

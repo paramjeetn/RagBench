@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import type { DatasetSummaryResponse, EvalRunResponse, PipelineConfigResponse } from "@/lib/types";
 import { useEvalContext } from "@/context/eval-context";
+import { useProjectContext } from "@/context/project-context";
 import { RunHistory } from "@/components/evaluate/run-history";
 import { ResultDetail } from "@/components/evaluate/result-detail";
 import { ProgressBar } from "@/components/evaluate/progress-bar";
@@ -30,6 +31,7 @@ function defaultRunName(cfg: PipelineConfigResponse): string {
 
 export default function EvaluatePage() {
   const { activeRun, setActiveRun } = useEvalContext();
+  const { activeProject } = useProjectContext();
   const [datasets, setDatasets] = useState<DatasetSummaryResponse[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<string>("");
   const [runs, setRuns] = useState<EvalRunResponse[]>([]);
@@ -42,14 +44,20 @@ export default function EvaluatePage() {
   const [pipelineConfig, setPipelineConfig] = useState<PipelineConfigResponse | null>(null);
 
   const loadRuns = useCallback(async () => {
-    const allRuns = await api.get<EvalRunResponse[]>("/api/eval/runs");
+    const url = activeProject
+      ? `/api/eval/runs?project_id=${activeProject.id}`
+      : "/api/eval/runs";
+    const allRuns = await api.get<EvalRunResponse[]>(url);
     setRuns(allRuns);
     return allRuns;
-  }, []);
+  }, [activeProject]);
 
   useEffect(() => {
+    const datasetsUrl = activeProject
+      ? `/api/datasets/?project_id=${activeProject.id}`
+      : "/api/datasets/";
     Promise.all([
-      api.get<DatasetSummaryResponse[]>("/api/datasets/"),
+      api.get<DatasetSummaryResponse[]>(datasetsUrl),
       loadRuns(),
     ])
       .then(([ds]) => {
@@ -66,7 +74,7 @@ export default function EvaluatePage() {
         setRunName(defaultRunName(cfg));
       })
       .catch(() => {});
-  }, [loadRuns]);
+  }, [loadRuns, activeProject]);
 
   useEffect(() => {
     if (activeRun && activeRun.status !== "running") {
@@ -82,6 +90,7 @@ export default function EvaluatePage() {
       const run = await api.post<EvalRunResponse>("/api/eval/run", {
         dataset_id: selectedDataset,
         name: runName.trim() || undefined,
+        project_id: activeProject?.id ?? undefined,
       });
       setActiveRun(run);
       setRuns((prev) => [run, ...prev]);

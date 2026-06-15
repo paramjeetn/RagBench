@@ -11,10 +11,28 @@ class Base(DeclarativeBase):
     pass
 
 
+class Project(Base):
+    __tablename__ = "projects"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    name: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    documents: Mapped[list["Document"]] = relationship(back_populates="project")
+    datasets: Mapped[list["Dataset"]] = relationship(back_populates="project")
+    eval_runs: Mapped[list["EvalRun"]] = relationship(back_populates="project")
+
+
 class Document(Base):
     __tablename__ = "documents"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    project_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     filename: Mapped[str] = mapped_column(String(255))
     file_type: Mapped[str] = mapped_column(String(20))
     chunk_count: Mapped[int] = mapped_column(Integer)
@@ -24,11 +42,16 @@ class Document(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
+    project: Mapped["Project | None"] = relationship(back_populates="documents")
+
 
 class Dataset(Base):
     __tablename__ = "datasets"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    project_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     document_ids: Mapped[list] = mapped_column(JSON, default=list)
@@ -36,6 +59,7 @@ class Dataset(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
+    project: Mapped["Project | None"] = relationship(back_populates="datasets")
     test_cases: Mapped[list["TestCase"]] = relationship(
         back_populates="dataset", cascade="all, delete-orphan"
     )
@@ -59,6 +83,9 @@ class EvalRun(Base):
     __tablename__ = "eval_runs"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    project_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="running")
     dataset_id: Mapped[UUID] = mapped_column(ForeignKey("datasets.id"))
@@ -72,6 +99,7 @@ class EvalRun(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
+    project: Mapped["Project | None"] = relationship(back_populates="eval_runs")
     dataset: Mapped["Dataset"] = relationship(back_populates="eval_runs")
     eval_results: Mapped[list["EvalResult"]] = relationship(
         back_populates="eval_run", cascade="all, delete-orphan"

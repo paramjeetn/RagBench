@@ -9,11 +9,13 @@ import {
   FlaskConical,
   GitCompareArrows,
   Settings,
+  FolderKanban,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/projects", label: "Projects", icon: FolderKanban },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/evaluate", label: "Evaluate", icon: FlaskConical },
