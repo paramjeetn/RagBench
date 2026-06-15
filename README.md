@@ -1,116 +1,127 @@
-# RAGBench
+<div align="center">
 
-**A containerized RAG evaluation engine for benchmarking chunking, retrieval, and reranking strategies across configurable pipelines.**
+# RagBench
 
-RAGBench lets you ingest documents, query them with a full RAG pipeline, and systematically evaluate quality using the RAG Triad metrics. Swap chunking strategies, toggle rerankers, compare LLM providers — then measure what actually improved.
+**An open-source RAG evaluation engine. Benchmark your retrieval pipeline before it ships.**
 
----
+[![Python](https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=python)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker)](https://docs.docker.com/compose/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
-## Quick Start
+[Docs](#architecture) · [Quick Start](#quick-start) · [API Reference](#api)
 
-```bash
-git clone https://github.com/paramjeet/ragbench.git
-cd ragbench
-
-# Add at least one LLM API key
-cp .env.example .env
-# Edit .env → add GEMINI_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY
-
-# Launch everything
-make up
-```
-
-| Service       | URL                          |
-|---------------|------------------------------|
-| Frontend      | http://localhost:3000         |
-| API Docs      | http://localhost:8000/docs    |
-| Qdrant Dashboard | http://localhost:6333/dashboard |
-
-```bash
-make logs       # tail all services
-make down       # stop everything
-make clean      # stop + wipe all data (fresh start)
-```
+</div>
 
 ---
 
-## What It Does
+Most RAG apps ship without knowing why they're failing. RagBench gives you the instrumentation to find out — swap chunking strategies, retrieval modes, and LLM providers, then measure the impact with the RAG Triad: Faithfulness, Contextual Precision, Contextual Recall, Answer Relevancy, and Contextual Relevancy.
 
-```
-Documents ──▶ Parse ──▶ Chunk ──▶ Embed ──▶ Qdrant
-                                               │
-User Query ──▶ Embed ──▶ Hybrid Search ──▶ Rerank ──▶ LLM ──▶ Answer
-                                                                 │
-                                               Evaluate (RAG Triad)
-                                                     │
-                                              Faithfulness ─── Answer Relevancy
-                                              Contextual Precision ─── Recall
-```
-
-### Pipeline Components
-
-| Stage | Options |
-|-------|---------|
-| **Chunking** | Fixed-size, recursive, semantic, document-aware |
-| **Embedding** | OpenAI, Gemini, local SentenceTransformer |
-| **Retrieval** | Dense (vector), sparse (BM25), hybrid (RRF) |
-| **Reranking** | Cross-encoder (`ms-marco-MiniLM-L-12-v2`) or none |
-| **Generation** | OpenAI, Anthropic, Gemini, Ollama (local) |
-| **Evaluation** | DeepEval RAG Triad + custom GEval criteria |
-
-Every component is swappable via the settings panel or API. Change a config, run an eval, compare results.
-
----
-
-## Features
-
-- **Chat with documents** — upload PDFs, Markdown, or TXT and ask questions with source citations
-- **Configurable pipeline** — swap chunking, retrieval, reranking, and LLM strategies from the UI
-- **RAG Triad evaluation** — Faithfulness, Answer Relevancy, Contextual Precision/Recall/Relevancy via DeepEval
-- **Run comparison** — side-by-side radar charts showing how config changes affect every metric
-- **Metric-to-hyperparameter mapping** — low faithfulness? The system tells you to check your LLM. Low contextual precision? Check your reranker
-- **Seed data included** — pre-loaded documents and two eval runs so the dashboard tells a story on first launch
+One command to run. No config files to write. Seed data included.
 
 ---
 
 ## Architecture
 
+![RagBench Architecture](docs/diagram/architecture.png)
+
+---
+
+## Quick Start
+
+**Prerequisites:** Docker + Docker Compose, and at least one LLM API key (OpenAI, Gemini, or Anthropic).
+
+```bash
+git clone https://github.com/paramjeetn/ragbench.git
+cd ragbench
+cp .env.example .env
+# Edit .env — add OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY
+make up
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     docker compose up                        │
-│                                                              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐ │
-│  │  Qdrant  │  │ Postgres │  │ Backend  │  │  Frontend  │ │
-│  │  :6333   │  │  :5432   │  │  :8000   │  │   :3000    │ │
-│  │ vectors  │  │ metadata │  │ FastAPI  │  │  Next.js   │ │
-│  └──────────┘  └──────────┘  └────┬─────┘  └─────┬──────┘ │
-│       ▲              ▲            │               │        │
-│       └──────────────┴────────────┘               │        │
-│                      │                            │        │
-│                 ┌────┴─────┐                      │        │
-│                 │   Seed   │                      │        │
-│                 │(one-shot)│                      │        │
-│                 └──────────┘                      │        │
-│                                                    │        │
-│  Frontend ──── HTTP ──── Backend ──── gRPC ──── Qdrant     │
-│                            └──────── SQL ──── Postgres     │
-└─────────────────────────────────────────────────────────────┘
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| API Docs (Swagger) | http://localhost:8000/docs |
+| Qdrant Dashboard | http://localhost:6333/dashboard |
+
+Seed data loads automatically — the dashboard shows real eval results on first launch.
+
+```bash
+make logs       # tail all services
+make down       # stop
+make clean      # stop + wipe volumes (fresh start)
 ```
+
+---
+
+## What You Can Do
+
+- **Upload documents** — PDF, Markdown, or plain text. The ingestion pipeline parses, chunks, embeds, and indexes into Qdrant automatically.
+- **Chat with your documents** — streaming Q&A with source citations and token/cost metadata per response.
+- **Run evaluations** — pick a question set, run it against your current pipeline config, get per-question RAG Triad scores.
+- **Compare runs side-by-side** — radar charts showing how a config change moved each metric. Know if your change helped or hurt.
+- **Tune from the UI** — change chunking strategy, embedding model, retrieval mode, reranker, LLM — all from a settings panel, no restarts.
+
+---
+
+## How the Pipeline Works
+
+```
+Documents → Parse → Chunk → Embed → Qdrant
+                                       │
+Query → Embed → Dense Search ──┐       │
+             → BM25 Sparse ────┴─ RRF Fusion (top 20)
+                                       │
+                              Cross-Encoder Rerank (top 5)
+                                       │
+                                  LLM Generator
+                                       │
+                              Answer + Citations
+                                       │
+                           Evaluate with RAG Triad
+```
+
+Every stage is swappable:
+
+| Stage | Options |
+|---|---|
+| Chunking | Fixed-size · Recursive · Semantic · Document-aware |
+| Embedding | OpenAI · Gemini · SentenceTransformers (local) |
+| Retrieval | Dense · Sparse (BM25) · Hybrid (RRF) |
+| Reranking | Cross-encoder `ms-marco-MiniLM-L-12-v2` · None |
+| Generation | OpenAI · Anthropic · Gemini · Ollama (local) |
+| Evaluation | DeepEval RAG Triad · GEval |
+
+---
+
+## Evaluation Metrics
+
+RagBench uses the **RAG Triad** framework. Each metric maps to a specific part of the pipeline, so a low score tells you exactly what to fix.
+
+| Metric | What It Measures | Low Score Means |
+|---|---|---|
+| Contextual Precision | Reranker quality | Irrelevant chunks ranked too high |
+| Contextual Recall | Embedding coverage | Missing relevant information |
+| Contextual Relevancy | Chunk size / top-K tuning | Too much noise in retrieved context |
+| Answer Relevancy | Prompt template quality | Answer doesn't address the question |
+| Faithfulness | LLM groundedness | Hallucination — answer goes beyond context |
 
 ---
 
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| **Frontend** | Next.js 16, TypeScript, Tailwind CSS, shadcn/ui |
-| **Backend** | Python 3.12, FastAPI, SQLAlchemy (async), Pydantic |
-| **Vector DB** | Qdrant (HNSW indexing, hybrid search) |
-| **Database** | PostgreSQL 16 (metadata, eval results) |
-| **Embeddings** | OpenAI, Gemini, sentence-transformers (local) |
-| **Reranking** | cross-encoder/ms-marco-MiniLM-L-12-v2 |
-| **Evaluation** | DeepEval (RAG Triad + GEval) |
-| **Infra** | Docker Compose, multi-stage builds, Make |
+|---|---|
+| Frontend | Next.js 16 · TypeScript · Tailwind CSS · shadcn/ui |
+| Backend | Python 3.12 · FastAPI · SQLAlchemy (async) · Pydantic |
+| Vector DB | Qdrant (HNSW indexing, hybrid search) |
+| Database | PostgreSQL 16 |
+| Embeddings | OpenAI · Gemini · sentence-transformers |
+| Reranking | cross-encoder/ms-marco-MiniLM-L-12-v2 |
+| Evaluation | DeepEval (RAG Triad + GEval) |
+| Infra | Docker Compose · multi-stage builds · Make |
 
 ---
 
@@ -118,34 +129,28 @@ Every component is swappable via the settings panel or API. Change a config, run
 
 ```
 ragbench/
-├── Makefile                    # One-command workflows
-├── docker-compose.yml          # All services orchestrated
-├── .env.example                # API key template
+├── Makefile                    # make up / down / clean / seed / logs
+├── docker-compose.yml
+├── .env.example
 │
 ├── backend/
-│   ├── Dockerfile
-│   ├── main.py                 # FastAPI entry point
-│   ├── config.py               # Pipeline configuration
-│   ├── ingestion/              # Parsers + chunking strategies
-│   ├── embedding/              # Multi-provider embedding
+│   ├── main.py                 # FastAPI entry + lifespan
+│   ├── config.py               # Pipeline config schema
+│   ├── ingestion/              # Parser + chunking strategies
+│   ├── embedding/              # Multi-provider embedder
 │   ├── retrieval/              # Dense, sparse, hybrid, reranker
 │   ├── generation/             # LLM providers + prompt templates
-│   ├── evaluation/             # RAG Triad metrics + comparison
-│   ├── database/               # Models, repository, session
-│   ├── vectorstore/            # Qdrant client
-│   ├── seed/                   # Sample docs + seed data loader
-│   └── api/                    # REST endpoints
+│   ├── evaluation/             # RAG Triad runner + comparison
+│   ├── database/               # SQLAlchemy models + repository
+│   ├── vectorstore/            # Qdrant client wrapper
+│   ├── seed/                   # Sample docs + idempotent seed loader
+│   └── api/                    # REST route handlers
 │
-├── frontend/
-│   ├── Dockerfile
-│   └── src/
-│       ├── app/                # Pages: chat, documents, evaluate, compare
-│       ├── components/         # UI components (shadcn/ui based)
-│       ├── hooks/              # Chat streaming, polling
-│       └── lib/                # API client, types
-│
-├── CONCEPTS.md                 # Deep-dive: RAG theory, chunking, eval methodology
-└── PRODUCT.md                  # Product experience + UI wireframes
+└── frontend/src/
+    ├── app/                    # Pages: dashboard, chat, documents, evaluate, compare
+    ├── components/             # UI components (shadcn/ui)
+    ├── context/                # Chat + eval state
+    └── lib/                    # API client + types
 ```
 
 ---
@@ -155,55 +160,68 @@ ragbench/
 ```
 POST /api/ingest                Upload and process documents
 GET  /api/documents             List ingested documents
-POST /api/query                 Ask a question
-POST /api/query/stream          Ask a question (streaming)
+POST /api/query                 Ask a question (sync)
+POST /api/query/stream          Ask a question (SSE streaming)
 POST /api/eval/run              Run evaluation suite
-GET  /api/eval/runs/{id}        Get eval run results
+GET  /api/eval/runs/{id}        Get results for an eval run
 GET  /api/eval/compare          Compare two eval runs
-GET  /api/config                Get pipeline config
+GET  /api/config                Get current pipeline config
 PUT  /api/config                Update pipeline config
+GET  /health                    Health check
 ```
 
-Full interactive docs at `http://localhost:8000/docs` when running.
+Full interactive docs at `http://localhost:8000/docs`.
 
 ---
 
 ## Makefile Commands
 
-```
-make up               Start all services
-make down             Stop all services
-make build            Rebuild containers
-make logs             Tail all logs
-make logs-backend     Tail backend logs
-make logs-frontend    Tail frontend logs
-make seed             Re-run seed data loader
-make frontend-dev     Run frontend locally (outside Docker)
-make clean            Stop + wipe volumes (fresh start)
-make help             Show all commands
+```bash
+make up               # Start all services (postgres → qdrant → backend → seed → frontend)
+make down             # Stop all services
+make build            # Rebuild containers
+make logs             # Tail all logs
+make logs-backend     # Tail backend logs only
+make logs-frontend    # Tail frontend logs only
+make seed             # Re-run seed data loader
+make clean            # Stop + wipe all volumes
+make help             # Show all commands
 ```
 
 ---
 
-## How Evaluation Works
+## Environment Variables
 
-RAGBench uses the **RAG Triad** framework to evaluate both retrieval and generation quality:
+Copy `.env.example` to `.env` and fill in at least one LLM key:
 
-| Metric | Evaluates | Low Score Means |
-|--------|-----------|-----------------|
-| Contextual Precision | Reranker effectiveness | Irrelevant chunks ranked too high |
-| Contextual Recall | Embedding coverage | Missing relevant information |
-| Contextual Relevancy | Chunk size + top-K tuning | Too much noise in retrieved context |
-| Answer Relevancy | Prompt template quality | Answer doesn't address the question |
-| Faithfulness | LLM groundedness | Hallucination — answer goes beyond context |
+```env
+# LLM — at least one required
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+GEMINI_API_KEY=
 
-Each metric maps to a specific hyperparameter, so you know exactly what to tune.
+# Evaluation — required for RAG Triad scoring
+OPENAI_API_KEY=        # DeepEval uses OpenAI by default
+
+# Infra — defaults work for local Docker
+POSTGRES_URL=postgresql+asyncpg://ragbench:ragbench@postgres:5432/ragbench
+QDRANT_HOST=qdrant
+QDRANT_PORT=6333
+```
 
 ---
 
-## Further Reading
+## Contributing
 
-- [docs/architecture.md](docs/architecture.md) — Complete technical architecture: pipelines, schemas, API, config-scoped collections
-- [docs/concepts.md](docs/concepts.md) — RAG theory, chunking strategies, hybrid search, evaluation methodology
-- [docs/product.md](docs/product.md) — Product experience, UI wireframes, data flow diagrams
-- [docs/testing-report.md](docs/testing-report.md) — End-to-end test run results and issues resolved
+Pull requests are welcome. For significant changes, open an issue first to discuss what you'd like to change.
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feat/your-feature`
+3. Commit with conventional commits: `git commit -m "feat: add X"`
+4. Open a PR against `main`
+
+---
+
+## License
+
+MIT © [Paramjeet](https://github.com/paramjeetn)

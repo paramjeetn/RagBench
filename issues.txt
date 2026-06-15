@@ -1,3 +1,0 @@
-1) I make some changes to pipeline settings then do apply changes, but i dont like the animation of apply changes, it should be properly done and after the animations shows it should close the pipeline setting automatically after 1 second delay
-
-2) if there is api key issue, or something when i click on evaluate, then i want that issues to be shown to user, maybe no api key or whatever.. 
