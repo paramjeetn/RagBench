@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { api } from "@/lib/api";
 import type { EvalRunResponse, EvalCompareResponse } from "@/lib/types";
 import { runLabel, formatScore, formatDelta } from "@/lib/utils";
 import { RadarChart } from "@/components/dashboard/radar-chart";
 import { InsightCard } from "@/components/dashboard/insight-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, GitCompareArrows } from "lucide-react";
+import { GitCompareArrows } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function ComparePage() {
@@ -65,113 +65,218 @@ export default function ComparePage() {
   const labelB = runB ? runLabel(runB) : "Run B";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Compare Runs</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          Side-by-side metric and configuration diff between two eval runs.
-        </p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.35 }}
+        className="pb-5"
+        style={{ borderBottom: "4px solid oklch(0.10 0.01 240)" }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-2" style={{ background: "#F4C542" }} />
+          <div>
+            <h1 className="text-4xl font-black uppercase tracking-tight text-foreground">
+              Compare Runs
+            </h1>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Side-by-side metric and configuration diff between two eval runs
+            </p>
+          </div>
+        </div>
+      </motion.div>
 
-      {/* Run selectors */}
-      <Card>
-        <CardContent className="pt-4 pb-4">
-          <div className="flex flex-wrap gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Baseline (Run A)</label>
-              <Select value={runAId} onValueChange={(v) => v && setRunAId(v)}>
-                <SelectTrigger className="h-9 w-60">
-                  <SelectValue placeholder="Select run" />
-                </SelectTrigger>
-                <SelectContent>
-                  {runs.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>
-                      {runLabel(r)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-end pb-0.5">
-              <GitCompareArrows className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Experiment (Run B)</label>
-              <Select value={runBId} onValueChange={(v) => v && setRunBId(v)}>
-                <SelectTrigger className="h-9 w-60">
-                  <SelectValue placeholder="Select run" />
-                </SelectTrigger>
-                <SelectContent>
-                  {runs.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>
-                      {runLabel(r)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {/* Run selector card */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="p-5"
+        style={{
+          background: "white",
+          border: "3px solid oklch(0.10 0.01 240)",
+          boxShadow: "8px 8px 0 #F4C542",
+        }}
+      >
+        <div
+          className="flex items-center gap-2 pb-3 mb-4"
+          style={{ borderBottom: "2px solid oklch(0.10 0.01 240)" }}
+        >
+          <div className="h-5 w-1.5" style={{ background: "#E63946" }} />
+          <h2 className="text-sm font-black uppercase tracking-widest">Select Runs</h2>
+        </div>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+              Baseline (Run A)
+            </label>
+            <Select value={runAId} onValueChange={(v) => v && setRunAId(v)}>
+              <SelectTrigger
+                className="h-9 w-64"
+                style={{ border: "2px solid oklch(0.10 0.01 240)", borderRadius: 0 }}
+              >
+                <SelectValue placeholder="Select run" />
+              </SelectTrigger>
+              <SelectContent style={{ border: "2px solid oklch(0.10 0.01 240)", borderRadius: 0 }}>
+                {runs.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {runLabel(r)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-end pb-0.5">
+            <div
+              className="flex h-9 w-9 items-center justify-center"
+              style={{ background: "oklch(0.10 0.01 240)", color: "white" }}
+            >
+              <GitCompareArrows className="h-4 w-4" />
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="space-y-1.5">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+              Experiment (Run B)
+            </label>
+            <Select value={runBId} onValueChange={(v) => v && setRunBId(v)}>
+              <SelectTrigger
+                className="h-9 w-64"
+                style={{ border: "2px solid oklch(0.10 0.01 240)", borderRadius: 0 }}
+              >
+                <SelectValue placeholder="Select run" />
+              </SelectTrigger>
+              <SelectContent style={{ border: "2px solid oklch(0.10 0.01 240)", borderRadius: 0 }}>
+                {runs.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {runLabel(r)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </motion.div>
 
+      {/* Loading */}
       {loading && (
-        <div className="flex justify-center py-10">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center py-16 gap-4">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="h-10 w-10 border-4"
+            style={{ borderColor: "#F4C542", borderRadius: 0 }}
+          />
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+            Comparing Runs...
+          </p>
         </div>
       )}
 
+      {/* Comparison Results */}
       {comparison && (
-        <div className="space-y-5">
+        <div className="space-y-6">
           {/* Radar chart */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">Metric Comparison</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RadarChart
-                metricsA={(comparison.run_a.metrics ?? {}) as Record<string, number>}
-                metricsB={(comparison.run_b.metrics ?? {}) as Record<string, number>}
-                labelA={labelA}
-                labelB={labelB}
-              />
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="p-6"
+            style={{
+              background: "white",
+              border: "3px solid oklch(0.10 0.01 240)",
+              boxShadow: "8px 8px 0 #2563EB",
+            }}
+          >
+            <div
+              className="flex items-center gap-2 pb-3 mb-4"
+              style={{ borderBottom: "2px solid oklch(0.10 0.01 240)" }}
+            >
+              <div className="h-5 w-1.5" style={{ background: "#2563EB" }} />
+              <h2 className="text-sm font-black uppercase tracking-widest">Metric Comparison</h2>
+            </div>
+            <RadarChart
+              metricsA={(comparison.run_a.metrics ?? {}) as Record<string, number>}
+              metricsB={(comparison.run_b.metrics ?? {}) as Record<string, number>}
+              labelA={labelA}
+              labelB={labelB}
+            />
+          </motion.div>
 
           {/* Metric deltas */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">Metric Deltas</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="overflow-hidden"
+            style={{
+              background: "white",
+              border: "3px solid oklch(0.10 0.01 240)",
+              boxShadow: "8px 8px 0 oklch(0.10 0.01 240)",
+            }}
+          >
+            <div
+              className="flex items-center gap-2 p-4"
+              style={{ borderBottom: "2px solid oklch(0.10 0.01 240)" }}
+            >
+              <div className="h-5 w-1.5" style={{ background: "#F4C542" }} />
+              <h2 className="text-sm font-black uppercase tracking-widest">Metric Deltas</h2>
+            </div>
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="pl-6">Metric</TableHead>
-                    <TableHead>{labelA}</TableHead>
-                    <TableHead>{labelB}</TableHead>
-                    <TableHead>Delta</TableHead>
+                  <TableRow
+                    style={{
+                      background: "#F4C542",
+                      borderBottom: "3px solid oklch(0.10 0.01 240)",
+                    }}
+                    className="hover:bg-[#F4C542]"
+                  >
+                    <TableHead className="pl-6 font-black uppercase tracking-widest text-black">
+                      Metric
+                    </TableHead>
+                    <TableHead className="font-black uppercase tracking-widest text-black">
+                      {labelA}
+                    </TableHead>
+                    <TableHead className="font-black uppercase tracking-widest text-black">
+                      {labelB}
+                    </TableHead>
+                    <TableHead className="font-black uppercase tracking-widest text-black">
+                      Delta
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {Object.entries(comparison.deltas).map(([key, delta]) => {
-                    const metricsA = comparison.run_a.metrics as Record<string, number> | undefined;
-                    const metricsB = comparison.run_b.metrics as Record<string, number> | undefined;
+                    const metricsA = comparison.run_a.metrics as
+                      | Record<string, number>
+                      | undefined;
+                    const metricsB = comparison.run_b.metrics as
+                      | Record<string, number>
+                      | undefined;
                     return (
-                      <TableRow key={key}>
-                        <TableCell className="pl-6 font-medium">
-                          {key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                      <TableRow
+                        key={key}
+                        style={{ borderBottom: "2px solid oklch(0.10 0.01 240)" }}
+                        className="hover:bg-amber-50/50"
+                      >
+                        <TableCell className="pl-6 font-black uppercase tracking-wide text-xs">
+                          {key.replace(/_/g, " ")}
                         </TableCell>
-                        <TableCell className="tabular-nums">
+                        <TableCell className="font-mono text-xs font-bold tabular-nums">
                           {metricsA?.[key] != null ? formatScore(metricsA[key]) : "-"}
                         </TableCell>
-                        <TableCell className="tabular-nums">
+                        <TableCell className="font-mono text-xs font-bold tabular-nums">
                           {metricsB?.[key] != null ? formatScore(metricsB[key]) : "-"}
                         </TableCell>
                         <TableCell
                           className={cn(
-                            "tabular-nums font-medium",
-                            delta > 0 ? "text-green-600" : delta < 0 ? "text-red-500" : "text-muted-foreground"
+                            "tabular-nums font-mono text-xs font-black",
+                            delta > 0
+                              ? "text-[#2563EB]"
+                              : delta < 0
+                              ? "text-[#E63946]"
+                              : "text-muted-foreground"
                           )}
                         >
                           {formatDelta(delta)}
@@ -181,74 +286,158 @@ export default function ComparePage() {
                   })}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
+            </div>
+          </motion.div>
 
           {/* Config diff */}
           {comparison.config_diff.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">Configuration Differences</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="overflow-hidden"
+              style={{
+                background: "white",
+                border: "3px solid oklch(0.10 0.01 240)",
+                boxShadow: "8px 8px 0 oklch(0.10 0.01 240)",
+              }}
+            >
+              <div
+                className="flex items-center gap-2 p-4"
+                style={{ borderBottom: "2px solid oklch(0.10 0.01 240)" }}
+              >
+                <div className="h-5 w-1.5" style={{ background: "#2563EB" }} />
+                <h2 className="text-sm font-black uppercase tracking-widest">
+                  Configuration Differences
+                </h2>
+              </div>
+              <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="pl-6">Setting</TableHead>
-                      <TableHead>{labelA}</TableHead>
-                      <TableHead>{labelB}</TableHead>
+                    <TableRow
+                      style={{
+                        background: "#2563EB",
+                        borderBottom: "3px solid oklch(0.10 0.01 240)",
+                      }}
+                      className="hover:bg-[#2563EB]"
+                    >
+                      <TableHead className="pl-6 font-black uppercase tracking-widest text-white">
+                        Setting
+                      </TableHead>
+                      <TableHead className="font-black uppercase tracking-widest text-white">
+                        {labelA}
+                      </TableHead>
+                      <TableHead className="font-black uppercase tracking-widest text-white">
+                        {labelB}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {comparison.config_diff.map((diff, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="pl-6 font-medium">
+                      <TableRow
+                        key={i}
+                        style={{ borderBottom: "2px solid oklch(0.10 0.01 240)" }}
+                        className="hover:bg-blue-50/50"
+                      >
+                        <TableCell className="pl-6 font-black uppercase tracking-wide text-xs">
                           {String(diff.field)}
                         </TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
+                        <TableCell className="font-mono text-xs font-bold text-muted-foreground">
                           {String(diff.value_a)}
                         </TableCell>
-                        <TableCell className="font-mono text-xs text-foreground">
+                        <TableCell className="font-mono text-xs font-bold text-foreground">
                           {String(diff.value_b)}
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              </CardContent>
-            </Card>
+              </div>
+            </motion.div>
           )}
 
           {/* Insights */}
           {comparison.insights.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-base font-semibold">Insights</h2>
-              {comparison.insights.map((insight, i) => (
-                <InsightCard key={i} insight={insight} />
-              ))}
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="space-y-3 pt-2"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-6 w-2" style={{ background: "#E63946" }} />
+                <h2 className="text-lg font-black uppercase tracking-widest text-foreground">
+                  Insights
+                </h2>
+              </div>
+              <div className="space-y-2.5">
+                {comparison.insights.map((insight, i) => (
+                  <InsightCard key={i} insight={insight} index={i} />
+                ))}
+              </div>
+            </motion.div>
           )}
         </div>
       )}
 
+      {/* Failed to load comparison */}
       {!loading && !comparison && runAId && runBId && runAId !== runBId && (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          Failed to load comparison.
-        </p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center py-12 text-center"
+          style={{
+            background: "white",
+            border: "3px solid oklch(0.10 0.01 240)",
+            boxShadow: "6px 6px 0 #E63946",
+          }}
+        >
+          <p className="text-sm font-black uppercase tracking-widest text-[#E63946]">
+            Failed to load comparison
+          </p>
+          <p className="mt-1 text-xs font-medium text-muted-foreground">
+            Make sure both selected runs have completed and have metric data.
+          </p>
+        </motion.div>
       )}
 
+      {/* Empty state: fewer than 2 runs */}
       {runs.length < 2 && (
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-          <GitCompareArrows className="h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
+        <div
+          className="flex flex-col items-center justify-center py-20 text-center"
+          style={{ border: "3px dashed oklch(0.10 0.01 240)" }}
+        >
+          <div className="relative mb-5">
+            <div
+              className="h-16 w-16"
+              style={{ background: "#2563EB", border: "3px solid oklch(0.10 0.01 240)" }}
+            >
+              <div
+                className="absolute top-2 left-2 h-8 w-8 rounded-full"
+                style={{ background: "#F4C542" }}
+              />
+            </div>
+          </div>
+          <p className="text-base font-black uppercase tracking-widest text-foreground">
+            Insufficient Runs
+          </p>
+          <p className="mt-1 text-xs font-medium text-muted-foreground">
             Complete at least 2 evaluation runs to compare them here.
           </p>
-          <a
+          <motion.a
             href="/evaluate"
-            className="text-sm font-medium text-primary hover:underline"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white"
+            style={{
+              background: "#E63946",
+              border: "2px solid oklch(0.10 0.01 240)",
+              boxShadow: "4px 4px 0 oklch(0.10 0.01 240)",
+              borderRadius: 0,
+            }}
           >
             Go to Evaluate →
-          </a>
+          </motion.a>
         </div>
       )}
     </div>

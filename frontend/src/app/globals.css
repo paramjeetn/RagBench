@@ -45,106 +45,157 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Bauhaus keyframe animations */
+  --animate-shimmer: shimmer 2.5s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-spin-slow: spin-slow 20s linear infinite;
+  --animate-spin-slower: spin-slow 35s linear infinite reverse;
+  --animate-bauhaus-slide: bauhaus-slide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-scale-in: scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-stripe-move: stripe-move 1.2s linear infinite;
+
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-12px) rotate(1deg); }
+    66% { transform: translateY(-6px) rotate(-1deg); }
+  }
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes bauhaus-slide {
+    from { opacity: 0; transform: translateX(-24px) skewX(-2deg); }
+    to { opacity: 1; transform: translateX(0) skewX(0deg); }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.88); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes stripe-move {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+  }
 }
 
 :root {
-  /* Premium Indigo Primary - Modern SaaS aesthetic */
-  --primary: oklch(0.51 0.22 264);
-  --primary-foreground: oklch(0.99 0 0);
+  /* Bauhaus Primary Red */
+  --primary: oklch(0.55 0.26 25);
+  --primary-foreground: oklch(1 0 0);
 
-  /* Pure white background - premium, clean look */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.16 0.01 240);
+  /* Off-white canvas - warm, like old Bauhaus posters */
+  --background: oklch(0.98 0.004 80);
+  --foreground: oklch(0.10 0.01 240);
 
-  /* Pure white cards with premium shadows */
+  /* Cards - clean cream */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0.01 240);
+  --card-foreground: oklch(0.10 0.01 240);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.01 240);
+  --popover-foreground: oklch(0.10 0.01 240);
 
-  /* Refined grays for secondary elements */
-  --secondary: oklch(0.96 0.004 240);
-  --secondary-foreground: oklch(0.30 0.02 264);
+  /* Bauhaus Yellow for secondary */
+  --secondary: oklch(0.96 0.06 95);
+  --secondary-foreground: oklch(0.15 0.02 60);
 
-  /* Muted colors - softer, more subtle */
-  --muted: oklch(0.98 0.003 240);
-  --muted-foreground: oklch(0.58 0.015 240);
+  --muted: oklch(0.96 0.005 80);
+  --muted-foreground: oklch(0.52 0.02 240);
 
-  /* Accent colors */
-  --accent: oklch(0.96 0.004 240);
-  --accent-foreground: oklch(0.30 0.02 264);
+  /* Bauhaus Blue for accent */
+  --accent: oklch(0.94 0.06 240);
+  --accent-foreground: oklch(0.25 0.18 240);
 
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: oklch(0.55 0.26 25);
 
-  /* Refined borders - lighter, more subtle */
-  --border: oklch(0.94 0.006 240);
-  --input: oklch(0.94 0.006 240);
-  --ring: oklch(0.51 0.22 264);
+  /* Heavy black borders — classic Bauhaus */
+  --border: oklch(0.18 0.01 240);
+  --input: oklch(0.88 0.01 80);
+  --ring: oklch(0.55 0.26 25);
 
-  /* Chart colors - vibrant but harmonious */
-  --chart-1: oklch(0.51 0.22 264);
-  --chart-2: oklch(0.62 0.19 160);
-  --chart-3: oklch(0.68 0.18 45);
-  --chart-4: oklch(0.60 0.20 300);
-  --chart-5: oklch(0.56 0.20 20);
+  /* Bauhaus chart palette */
+  --chart-1: oklch(0.55 0.26 25);   /* Red */
+  --chart-2: oklch(0.85 0.18 95);   /* Yellow */
+  --chart-3: oklch(0.48 0.22 240);  /* Blue */
+  --chart-4: oklch(0.15 0.01 240);  /* Black */
+  --chart-5: oklch(0.72 0.18 160);  /* Green */
 
-  /* Refined border radius - subtle, modern */
-  --radius: 0.5rem;
+  --radius: 0rem; /* Bauhaus = sharp corners */
 
-  /* Sidebar styling */
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.16 0.01 240);
-  --sidebar-primary: oklch(0.51 0.22 264);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.96 0.004 240);
-  --sidebar-accent-foreground: oklch(0.30 0.02 264);
-  --sidebar-border: oklch(0.94 0.006 240);
-  --sidebar-ring: oklch(0.51 0.22 264);
+  /* Sidebar - pure black Bauhaus */
+  --sidebar: oklch(0.10 0.01 240);
+  --sidebar-foreground: oklch(0.97 0.005 80);
+  --sidebar-primary: oklch(0.55 0.26 25);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.85 0.18 95);
+  --sidebar-accent-foreground: oklch(0.10 0.01 240);
+  --sidebar-border: oklch(0.25 0.01 240);
+  --sidebar-ring: oklch(0.55 0.26 25);
+
+  /* Bauhaus accent colors (use via CSS vars directly) */
+  --bauhaus-red: oklch(0.55 0.26 25);
+  --bauhaus-yellow: oklch(0.85 0.18 95);
+  --bauhaus-blue: oklch(0.48 0.22 240);
+  --bauhaus-black: oklch(0.10 0.01 240);
+  --bauhaus-white: oklch(1 0 0);
 }
 
 .dark {
-  --primary: oklch(0.72 0.16 264);
-  --primary-foreground: oklch(0.99 0 0);
+  --primary: oklch(0.65 0.22 25);
+  --primary-foreground: oklch(0.10 0.01 240);
 
-  --background: oklch(0.13 0.015 264);
-  --foreground: oklch(0.97 0.005 240);
+  --background: oklch(0.10 0.01 240);
+  --foreground: oklch(0.96 0.005 80);
 
-  --card: oklch(0.18 0.015 264);
-  --card-foreground: oklch(0.97 0.005 240);
+  --card: oklch(0.14 0.01 240);
+  --card-foreground: oklch(0.96 0.005 80);
 
-  --popover: oklch(0.18 0.015 264);
-  --popover-foreground: oklch(0.97 0.005 240);
+  --popover: oklch(0.14 0.01 240);
+  --popover-foreground: oklch(0.96 0.005 80);
 
-  --secondary: oklch(0.25 0.02 264);
-  --secondary-foreground: oklch(0.97 0.005 240);
+  --secondary: oklch(0.22 0.02 240);
+  --secondary-foreground: oklch(0.96 0.005 80);
 
-  --muted: oklch(0.23 0.02 264);
-  --muted-foreground: oklch(0.65 0.03 240);
+  --muted: oklch(0.18 0.01 240);
+  --muted-foreground: oklch(0.60 0.02 240);
 
-  --accent: oklch(0.25 0.02 264);
-  --accent-foreground: oklch(0.97 0.005 240);
+  --accent: oklch(0.20 0.05 240);
+  --accent-foreground: oklch(0.96 0.005 80);
 
-  --destructive: oklch(0.704 0.191 22.216);
+  --destructive: oklch(0.65 0.22 25);
 
-  --border: oklch(1 0 0 / 9%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.72 0.16 264);
+  --border: oklch(0.85 0.18 95 / 60%);
+  --input: oklch(0.22 0.01 240);
+  --ring: oklch(0.65 0.22 25);
 
-  --chart-1: oklch(0.72 0.16 264);
-  --chart-2: oklch(0.72 0.18 160);
-  --chart-3: oklch(0.76 0.16 45);
-  --chart-4: oklch(0.70 0.18 300);
-  --chart-5: oklch(0.68 0.18 20);
+  --chart-1: oklch(0.65 0.22 25);
+  --chart-2: oklch(0.85 0.18 95);
+  --chart-3: oklch(0.60 0.20 240);
+  --chart-4: oklch(0.97 0.005 80);
+  --chart-5: oklch(0.72 0.18 160);
 
-  --sidebar: oklch(0.16 0.015 264);
-  --sidebar-foreground: oklch(0.97 0.005 240);
-  --sidebar-primary: oklch(0.72 0.16 264);
-  --sidebar-primary-foreground: oklch(0.13 0.015 264);
-  --sidebar-accent: oklch(0.25 0.02 264);
-  --sidebar-accent-foreground: oklch(0.97 0.005 240);
-  --sidebar-border: oklch(1 0 0 / 9%);
-  --sidebar-ring: oklch(0.72 0.16 264);
+  --sidebar: oklch(0.08 0.01 240);
+  --sidebar-foreground: oklch(0.97 0.005 80);
+  --sidebar-primary: oklch(0.65 0.22 25);
+  --sidebar-primary-foreground: oklch(0.10 0.01 240);
+  --sidebar-accent: oklch(0.85 0.18 95);
+  --sidebar-accent-foreground: oklch(0.10 0.01 240);
+  --sidebar-border: oklch(0.85 0.18 95 / 30%);
+  --sidebar-ring: oklch(0.65 0.22 25);
+
+  --bauhaus-red: oklch(0.65 0.22 25);
+  --bauhaus-yellow: oklch(0.85 0.18 95);
+  --bauhaus-blue: oklch(0.60 0.20 240);
+  --bauhaus-black: oklch(0.10 0.01 240);
+  --bauhaus-white: oklch(0.96 0.005 80);
 }
 
 @layer base {
@@ -157,37 +208,189 @@
   html {
     @apply font-sans;
   }
-  
-  /* Typography improvements */
+
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold text-foreground;
+    @apply font-black text-foreground tracking-tight;
   }
-  
-  h1 {
-    @apply text-4xl leading-tight;
+  h1 { @apply text-4xl leading-none; }
+  h2 { @apply text-3xl leading-tight; }
+  h3 { @apply text-2xl leading-tight; }
+  h4 { @apply text-xl leading-snug; }
+  h5 { @apply text-lg leading-snug; }
+  h6 { @apply text-base leading-normal font-bold; }
+  p { @apply leading-relaxed; }
+}
+
+/* Bauhaus utility classes */
+@layer utilities {
+  /* Thick black border - signature Bauhaus stroke */
+  .bauhaus-border {
+    border: 3px solid var(--bauhaus-black);
   }
-  
-  h2 {
-    @apply text-3xl leading-snug;
+  .dark .bauhaus-border {
+    border: 3px solid var(--bauhaus-yellow);
   }
-  
-  h3 {
-    @apply text-2xl leading-snug;
+
+  /* Bauhaus geometric shapes */
+  .bauhaus-circle {
+    border-radius: 50%;
   }
-  
-  h4 {
-    @apply text-xl leading-snug;
+
+  /* Striped diagonal pattern */
+  .bauhaus-stripe {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 6px,
+      oklch(0.10 0.01 240 / 8%) 6px,
+      oklch(0.10 0.01 240 / 8%) 12px
+    );
   }
-  
-  h5 {
-    @apply text-lg leading-snug font-semibold;
+  .dark .bauhaus-stripe {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 6px,
+      oklch(0.85 0.18 95 / 10%) 6px,
+      oklch(0.85 0.18 95 / 10%) 12px
+    );
   }
-  
-  h6 {
-    @apply text-base leading-normal font-semibold;
+
+  /* Animated stripe */
+  .bauhaus-stripe-animated {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 10px,
+      oklch(0.10 0.01 240 / 6%) 10px,
+      oklch(0.10 0.01 240 / 6%) 20px
+    );
+    background-size: 40px 40px;
+    animation: var(--animate-stripe-move);
   }
-  
-  p {
-    @apply leading-relaxed text-foreground/85;
+
+  /* Bold geometric grid background */
+  .bauhaus-grid-bg {
+    background-image:
+      linear-gradient(oklch(0.10 0.01 240 / 6%) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.10 0.01 240 / 6%) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .dark .bauhaus-grid-bg {
+    background-image:
+      linear-gradient(oklch(0.85 0.18 95 / 8%) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.85 0.18 95 / 8%) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* Left color-block accent — classic Bauhaus layout device */
+  .bauhaus-accent-left {
+    border-left: 6px solid var(--bauhaus-red);
+  }
+
+  .bauhaus-accent-yellow {
+    border-left: 6px solid var(--bauhaus-yellow);
+  }
+
+  .bauhaus-accent-blue {
+    border-left: 6px solid var(--bauhaus-blue);
+  }
+
+  /* Bauhaus card — thick black stroke, sharp, no radius */
+  .bauhaus-card {
+    background: var(--card);
+    border: 3px solid var(--bauhaus-black);
+    box-shadow: 6px 6px 0 var(--bauhaus-black);
+    border-radius: 0;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .bauhaus-card:hover {
+    box-shadow: 8px 8px 0 var(--bauhaus-black);
+    transform: translate(-2px, -2px);
+  }
+  .dark .bauhaus-card {
+    border: 3px solid var(--bauhaus-yellow);
+    box-shadow: 6px 6px 0 var(--bauhaus-yellow);
+  }
+  .dark .bauhaus-card:hover {
+    box-shadow: 8px 8px 0 var(--bauhaus-yellow);
+  }
+
+  /* Bauhaus button - big, bold, blocky */
+  .bauhaus-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.4rem;
+    font-weight: 900;
+    font-size: 0.875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 3px solid var(--bauhaus-black);
+    box-shadow: 4px 4px 0 var(--bauhaus-black);
+    border-radius: 0;
+    transition: all 0.12s ease;
+    cursor: pointer;
+    background: var(--bauhaus-red);
+    color: white;
+  }
+  .bauhaus-btn:hover {
+    box-shadow: 6px 6px 0 var(--bauhaus-black);
+    transform: translate(-2px, -2px);
+  }
+  .bauhaus-btn:active {
+    box-shadow: 2px 2px 0 var(--bauhaus-black);
+    transform: translate(2px, 2px);
+  }
+  .dark .bauhaus-btn {
+    border-color: var(--bauhaus-yellow);
+    box-shadow: 4px 4px 0 var(--bauhaus-yellow);
+  }
+  .dark .bauhaus-btn:hover {
+    box-shadow: 6px 6px 0 var(--bauhaus-yellow);
+  }
+
+  /* Bauhaus tag / badge */
+  .bauhaus-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 2px solid currentColor;
+    border-radius: 0;
+  }
+
+  /* Color block fills */
+  .bg-bauhaus-red { background-color: var(--bauhaus-red); }
+  .bg-bauhaus-yellow { background-color: var(--bauhaus-yellow); }
+  .bg-bauhaus-blue { background-color: var(--bauhaus-blue); }
+  .bg-bauhaus-black { background-color: var(--bauhaus-black); }
+
+  .text-bauhaus-red { color: var(--bauhaus-red); }
+  .text-bauhaus-yellow { color: var(--bauhaus-yellow); }
+  .text-bauhaus-blue { color: var(--bauhaus-blue); }
+  .text-bauhaus-black { color: var(--bauhaus-black); }
+
+  /* 3D CSS card tilt effect */
+  .card-3d {
+    transform-style: preserve-3d;
+    perspective: 800px;
+  }
+
+  /* Shimmer text */
+  .shimmer-text {
+    background: linear-gradient(90deg,
+      var(--bauhaus-red) 0%,
+      var(--bauhaus-yellow) 30%,
+      var(--bauhaus-blue) 60%,
+      var(--bauhaus-red) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: var(--animate-shimmer);
   }
 }
