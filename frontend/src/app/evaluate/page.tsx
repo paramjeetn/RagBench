@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import type { DatasetSummaryResponse, EvalRunResponse, PipelineConfigResponse } from "@/lib/types";
 import { useEvalContext } from "@/context/eval-context";
@@ -16,9 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2, Play, Database, TriangleAlert, XCircle } from "lucide-react";
+import { Play, Database, TriangleAlert, XCircle } from "lucide-react";
 import { UploadDataset } from "@/components/evaluate/upload-dataset";
 
 function defaultRunName(cfg: PipelineConfigResponse): string {
@@ -111,7 +111,15 @@ export default function EvaluatePage() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
+        <div className="flex flex-col items-center gap-4">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="h-12 w-12 border-4"
+            style={{ borderColor: "#F4C542", borderRadius: 0 }}
+          />
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -119,12 +127,24 @@ export default function EvaluatePage() {
   if (viewingRun) {
     return (
       <div className="space-y-7">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Evaluation Results</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Per-question breakdown and retrieved context.
-          </p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="pb-5"
+          style={{ borderBottom: "4px solid oklch(0.10 0.01 240)" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-2" style={{ background: "#E63946" }} />
+            <div>
+              <h1 className="text-4xl font-black uppercase tracking-tight text-foreground">
+                Eval Results
+              </h1>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Per-question breakdown & retrieved context
+              </p>
+            </div>
+          </div>
+        </motion.div>
         <ResultDetail run={viewingRun} onBack={() => setViewingRun(null)} />
       </div>
     );
@@ -133,106 +153,176 @@ export default function EvaluatePage() {
   return (
     <div className="space-y-7">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Evaluate</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Run RAG Triad evaluation against a Q&amp;A dataset.
-        </p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.35 }}
+        className="pb-5"
+        style={{ borderBottom: "4px solid oklch(0.10 0.01 240)" }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-2" style={{ background: "#F4C542" }} />
+          <div>
+            <h1 className="text-4xl font-black uppercase tracking-tight text-foreground">Evaluate</h1>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Run RAG Triad evaluation on a Q&amp;A dataset
+            </p>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Run controls */}
-      <Card>
-        <CardContent className="pt-4 pb-4">
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Run name</label>
-              <Input
-                value={runName}
-                onChange={(e) => setRunName(e.target.value)}
-                placeholder="e.g. Hybrid baseline"
-                className="h-9 w-56"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <Database className="h-3 w-3" />
-                Dataset
-              </label>
-              <Select value={selectedDataset} onValueChange={(v) => v && setSelectedDataset(v)}>
-                <SelectTrigger className="h-9 w-64">
-                  <SelectValue placeholder="Select dataset">
-                    {datasets.find((ds) => ds.id === selectedDataset)?.name ?? "Select dataset"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {datasets.map((ds) => (
-                    <SelectItem key={ds.id} value={ds.id}>
-                      {ds.name}
-                      <span className="ml-1.5 text-muted-foreground">({ds.item_count} items)</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              onClick={startRun}
-              disabled={!selectedDataset || starting || activeRun?.status === "running"}
-              size="sm"
-              className="h-9 gap-2"
-            >
-              {starting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Play className="h-3.5 w-3.5" />
-              )}
-              Run Evaluation
-            </Button>
-            <UploadDataset
-              onUploaded={(ds) => {
-                setDatasets((prev) => [...prev, ds]);
-                setSelectedDataset(ds.id);
-              }}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="p-5"
+        style={{
+          background: "white",
+          border: "3px solid oklch(0.10 0.01 240)",
+          boxShadow: "8px 8px 0 #F4C542",
+        }}
+      >
+        <div className="flex items-center gap-2 pb-4 mb-4" style={{ borderBottom: "2px solid oklch(0.10 0.01 240)" }}>
+          <div className="h-5 w-1.5" style={{ background: "#F4C542" }} />
+          <h2 className="text-sm font-black uppercase tracking-widest">Run Configuration</h2>
+        </div>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Run Name</label>
+            <Input
+              value={runName}
+              onChange={(e) => setRunName(e.target.value)}
+              placeholder="e.g. Hybrid baseline"
+              className="h-9 w-56"
+              style={{ border: "2px solid oklch(0.10 0.01 240)", borderRadius: 0 }}
             />
           </div>
-
-          {/* Active run progress */}
-          {activeRun?.status === "running" && activeRun.progress && (
-            <div className="mt-4 border-t pt-4">
-              <ProgressBar
-                completed={activeRun.progress.completed}
-                total={activeRun.progress.total}
+          <div className="space-y-1.5">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+              <Database className="h-3 w-3" />
+              Dataset
+            </label>
+            <Select value={selectedDataset} onValueChange={(v) => v && setSelectedDataset(v)}>
+              <SelectTrigger
+                className="h-9 w-64"
+                style={{ border: "2px solid oklch(0.10 0.01 240)", borderRadius: 0 }}
+              >
+                <SelectValue placeholder="Select dataset">
+                  {datasets.find((ds) => ds.id === selectedDataset)?.name ?? "Select dataset"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {datasets.map((ds) => (
+                  <SelectItem key={ds.id} value={ds.id}>
+                    {ds.name}
+                    <span className="ml-1.5 text-muted-foreground">({ds.item_count} items)</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <motion.button
+            onClick={startRun}
+            disabled={!selectedDataset || starting || activeRun?.status === "running"}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex h-9 items-center gap-2 px-5 text-sm font-black uppercase tracking-wider text-white disabled:opacity-50"
+            style={{
+              background: "#E63946",
+              border: "2px solid oklch(0.10 0.01 240)",
+              boxShadow: "4px 4px 0 oklch(0.10 0.01 240)",
+              borderRadius: 0,
+            }}
+          >
+            {starting ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}
+                className="h-3.5 w-3.5 border-2 border-white"
+                style={{ borderRadius: 0, borderTopColor: "transparent" }}
               />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Start error */}
-      {startError && (
-        <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
-          <p><span className="font-semibold">Failed to start evaluation:</span> {startError}</p>
+            ) : (
+              <Play className="h-3.5 w-3.5" />
+            )}
+            Run Evaluation
+          </motion.button>
+          <UploadDataset
+            onUploaded={(ds) => {
+              setDatasets((prev) => [...prev, ds]);
+              setSelectedDataset(ds.id);
+            }}
+          />
         </div>
+
+        {/* Active run progress */}
+        {activeRun?.status === "running" && activeRun.progress && (
+          <div
+            className="mt-5 p-3"
+            style={{ background: "#F4C542", border: "2px solid oklch(0.10 0.01 240)" }}
+          >
+            <ProgressBar
+              completed={activeRun.progress.completed}
+              total={activeRun.progress.total}
+            />
+          </div>
+        )}
+      </motion.div>
+
+      {/* Error */}
+      {startError && (
+        <motion.div
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-start gap-3 px-4 py-3"
+          style={{
+            background: "#E63946",
+            border: "3px solid oklch(0.10 0.01 240)",
+            boxShadow: "4px 4px 0 oklch(0.10 0.01 240)",
+          }}
+        >
+          <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-white" />
+          <p className="text-sm font-bold text-white">
+            <span className="font-black uppercase tracking-wider">Failed:</span> {startError}
+          </p>
+        </motion.div>
       )}
 
-      {/* Scoring mode warning */}
+      {/* Scoring warning */}
       {scoringAvailable === false && (
-        <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-          <p>
-            <span className="font-semibold">No API key detected</span> — runs will use heuristic scoring.
-            Add <code className="rounded bg-amber-100 px-1 font-mono text-xs">OPENAI_API_KEY</code>,{" "}
-            <code className="rounded bg-amber-100 px-1 font-mono text-xs">ANTHROPIC_API_KEY</code>, or{" "}
-            <code className="rounded bg-amber-100 px-1 font-mono text-xs">GEMINI_API_KEY</code> for LLM-based eval.
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-start gap-3 px-4 py-3"
+          style={{
+            background: "#F4C542",
+            border: "3px solid oklch(0.10 0.01 240)",
+            boxShadow: "4px 4px 0 oklch(0.10 0.01 240)",
+          }}
+        >
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-black" />
+          <p className="text-sm font-bold text-black">
+            <span className="font-black uppercase tracking-wider">No API Key —</span> runs will use heuristic scoring.
+            Add <code className="font-mono text-xs bg-black/10 px-1">OPENAI_API_KEY</code>,{" "}
+            <code className="font-mono text-xs bg-black/10 px-1">ANTHROPIC_API_KEY</code>, or{" "}
+            <code className="font-mono text-xs bg-black/10 px-1">GEMINI_API_KEY</code> for LLM-based eval.
           </p>
-        </div>
+        </motion.div>
       )}
 
       {/* Run history */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">History</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="space-y-4"
+      >
+        <div className="flex items-center gap-3">
+          <div className="h-6 w-2" style={{ background: "#2563EB" }} />
+          <h2 className="text-lg font-black uppercase tracking-widest text-foreground">History</h2>
+        </div>
         <RunHistory runs={runs} onViewRun={handleViewRun} />
-      </div>
+      </motion.div>
     </div>
   );
 }

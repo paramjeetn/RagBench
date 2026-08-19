@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import { runLabel } from "@/lib/utils";
 import type { EvalRunResponse, EvalCompareResponse } from "@/lib/types";
 import { RadarChart } from "@/components/dashboard/radar-chart";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { InsightCard } from "@/components/dashboard/insight-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, FlaskConical, ArrowRight } from "lucide-react";
+import { Loader2, FlaskConical, ArrowRight, Zap } from "lucide-react";
 
 export default function DashboardPage() {
   const [comparison, setComparison] = useState<EvalCompareResponse | null>(null);
@@ -22,7 +22,6 @@ export default function DashboardPage() {
         const allRuns = await api.get<EvalRunResponse[]>("/api/eval/runs");
         const completed = allRuns.filter((r) => r.status === "completed");
         setRuns(completed);
-
         if (completed.length >= 2) {
           const a = completed[completed.length - 2];
           const b = completed[completed.length - 1];
@@ -42,45 +41,114 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
+        <div className="flex flex-col items-center gap-4">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="h-12 w-12 border-4 border-bauhaus-yellow"
+            style={{ borderRadius: 0 }}
+          />
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
-        <p className="text-sm font-medium">Failed to load dashboard</p>
-        <p className="text-xs">{error}</p>
-        <p className="text-xs">Make sure the backend is running on port 8000.</p>
+      <div
+        className="flex h-full flex-col items-center justify-center gap-3"
+        style={{ color: "#E63946" }}
+      >
+        <div
+          className="px-6 py-4"
+          style={{ border: "3px solid #E63946", boxShadow: "6px 6px 0 #E63946" }}
+        >
+          <p className="text-sm font-black uppercase tracking-wider">Dashboard Error</p>
+          <p className="mt-1 text-xs font-medium text-muted-foreground">{error}</p>
+        </div>
       </div>
     );
   }
 
   if (!comparison || runs.length < 2) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-7">
-        <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary/8 shadow-sm">
-          <FlaskConical className="h-8 w-8 text-primary" />
-        </div>
-        <div className="text-center">
-          <p className="text-2xl font-semibold tracking-tight text-foreground">Welcome to RagBench</p>
-          <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-            Run at least 2 evaluations to see a metric comparison and radar chart here.
+      <div className="flex h-full flex-col items-center justify-center gap-8">
+        {/* Giant Bauhaus hero shape */}
+        <motion.div
+          initial={{ scale: 0, rotate: -45 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 150, damping: 16 }}
+          className="relative"
+        >
+          {/* Outer yellow square */}
+          <div
+            className="h-28 w-28 flex items-center justify-center"
+            style={{
+              background: "#F4C542",
+              border: "4px solid oklch(0.10 0.01 240)",
+              boxShadow: "8px 8px 0 #E63946",
+              borderRadius: 0,
+            }}
+          >
+            {/* Inner red circle */}
+            <div
+              className="h-16 w-16 flex items-center justify-center"
+              style={{ background: "#E63946", borderRadius: "50%" }}
+            >
+              <FlaskConical className="h-8 w-8 text-white" />
+            </div>
+          </div>
+          {/* Blue triangle accent */}
+          <div
+            className="absolute -bottom-4 -right-4 h-8 w-8"
+            style={{
+              background: "#2563EB",
+              clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
+            }}
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+          className="text-center"
+        >
+          <p className="text-4xl font-black uppercase tracking-tight text-foreground">
+            Welcome to{" "}
+            <span style={{ color: "#E63946" }}>RAG</span>
+            <span style={{ color: "#2563EB" }}>BENCH</span>
+          </p>
+          <p className="mt-3 max-w-sm text-sm font-medium text-muted-foreground">
+            Run at least 2 evaluations to unlock the comparison dashboard.
           </p>
           {runs.length === 1 && (
-            <p className="mt-2 text-xs text-primary font-semibold">
-              1 run completed — 1 more to go.
+            <p className="mt-2 text-xs font-black uppercase tracking-widest" style={{ color: "#F4C542" }}>
+              ★ 1 of 2 runs complete
             </p>
           )}
-        </div>
-        <a
+        </motion.div>
+
+        <motion.a
           href="/evaluate"
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+          whileHover={{ y: -4 }}
+          whileTap={{ scale: 0.96 }}
+          className="inline-flex items-center gap-3 px-7 py-3.5 text-sm font-black uppercase tracking-widest text-white"
+          style={{
+            background: "#E63946",
+            border: "3px solid oklch(0.10 0.01 240)",
+            boxShadow: "6px 6px 0 oklch(0.10 0.01 240)",
+            borderRadius: 0,
+          }}
         >
-          Go to Evaluate
+          <Zap className="h-4 w-4" />
+          Start Evaluating
           <ArrowRight className="h-4 w-4" />
-        </a>
+        </motion.a>
       </div>
     );
   }
@@ -94,17 +162,46 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-        <p className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground font-medium">
-          <span>{labelA}</span>
-          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/60" />
-          <span className="text-foreground">{labelB}</span>
-        </p>
-      </div>
+      {/* Bauhaus Page Header */}
+      <motion.div
+        initial={{ opacity: 0, x: -24 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.35 }}
+        className="flex items-end justify-between"
+        style={{ borderBottom: "4px solid oklch(0.10 0.01 240)", paddingBottom: "1rem" }}
+      >
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-2 bg-bauhaus-red" />
+            <h1 className="text-4xl font-black uppercase tracking-tight text-foreground">
+              Dashboard
+            </h1>
+          </div>
+          <p className="mt-1.5 ml-5 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            <span
+              className="px-2 py-0.5"
+              style={{ background: "#E63946", color: "white", fontSize: "0.6rem" }}
+            >
+              {labelA}
+            </span>
+            <ArrowRight className="h-3 w-3" />
+            <span
+              className="px-2 py-0.5"
+              style={{ background: "#2563EB", color: "white", fontSize: "0.6rem" }}
+            >
+              {labelB}
+            </span>
+          </p>
+        </div>
+        {/* Bauhaus decoration — 3 colored dots */}
+        <div className="flex gap-2 pb-2">
+          <div className="h-5 w-5 rounded-full bg-bauhaus-red" />
+          <div className="h-5 w-5 bg-bauhaus-yellow" />
+          <div className="h-5 w-5 rounded-full bg-bauhaus-blue" />
+        </div>
+      </motion.div>
 
-      {/* Metric Cards */}
+      {/* Metric Cards — bold colorful Bauhaus bento */}
       <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
         {Object.entries(metricsB).map(([key, value]) => (
           <MetricCard
@@ -116,31 +213,55 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Radar Chart */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">Metric Comparison</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RadarChart
-            metricsA={metricsA}
-            metricsB={metricsB}
-            labelA={labelA}
-            labelB={labelB}
-          />
-        </CardContent>
-      </Card>
+      {/* Radar Chart — Bauhaus bordered block */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="p-6"
+        style={{
+          background: "white",
+          border: "3px solid oklch(0.10 0.01 240)",
+          boxShadow: "8px 8px 0 oklch(0.10 0.01 240)",
+        }}
+      >
+        <div
+          className="flex items-center gap-3 pb-4 mb-4"
+          style={{ borderBottom: "3px solid oklch(0.10 0.01 240)" }}
+        >
+          <div className="h-6 w-2 bg-bauhaus-yellow" />
+          <h2 className="text-base font-black uppercase tracking-widest">Metric Comparison</h2>
+          <div className="ml-auto flex gap-1.5">
+            <div className="h-3 w-3 rounded-full" style={{ background: "#E63946" }} />
+            <div className="h-3 w-3 rounded-full" style={{ background: "#2563EB" }} />
+          </div>
+        </div>
+        <RadarChart
+          metricsA={metricsA}
+          metricsB={metricsB}
+          labelA={labelA}
+          labelB={labelB}
+        />
+      </motion.div>
 
       {/* Insights */}
       {comparison.insights.length > 0 && (
-        <div className="space-y-4 pt-4">
-          <h2 className="text-lg font-semibold text-foreground">Insights</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.35 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-6 w-2 bg-bauhaus-blue" />
+            <h2 className="text-lg font-black uppercase tracking-widest text-foreground">Insights</h2>
+          </div>
           <div className="space-y-3">
             {comparison.insights.map((insight, i) => (
-              <InsightCard key={i} insight={insight} />
+              <InsightCard key={i} insight={insight} index={i} />
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

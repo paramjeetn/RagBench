@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
 import {
   LayoutDashboard,
   FileText,
@@ -14,12 +15,12 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/documents", label: "Documents", icon: FileText },
-  { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/evaluate", label: "Evaluate", icon: FlaskConical },
-  { href: "/compare", label: "Compare", icon: GitCompareArrows },
+  { href: "/",          label: "Dashboard", icon: LayoutDashboard, color: "#E63946" },
+  { href: "/projects",  label: "Projects",  icon: FolderKanban,    color: "#F4C542" },
+  { href: "/documents", label: "Documents", icon: FileText,         color: "#2563EB" },
+  { href: "/chat",      label: "Chat",      icon: MessageSquare,   color: "#E63946" },
+  { href: "/evaluate",  label: "Evaluate",  icon: FlaskConical,    color: "#F4C542" },
+  { href: "/compare",   label: "Compare",   icon: GitCompareArrows,color: "#2563EB" },
 ];
 
 interface SidebarProps {
@@ -30,57 +31,133 @@ export function Sidebar({ onOpenSettings }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-56 flex-col border-r border-border/50 bg-card">
+    <aside
+      className="relative flex h-screen w-60 flex-col bg-bauhaus-black"
+      style={{ borderRight: "4px solid var(--bauhaus-yellow)" }}
+    >
+      {/* Geometric decoration — yellow rectangle top */}
+      <div className="absolute top-0 right-0 h-1 w-full bg-bauhaus-yellow" />
+      {/* Red vertical stripe on far left */}
+      <div className="absolute top-0 left-0 h-full w-1 bg-bauhaus-red" />
+
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-border/50 px-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary shadow-sm">
-          <FlaskConical className="h-4 w-4 text-primary-foreground" />
+      <div
+        className="flex h-[72px] shrink-0 items-center gap-3 px-5"
+        style={{ borderBottom: "3px solid var(--bauhaus-yellow)" }}
+      >
+        {/* Bauhaus geometric logo — circle in square */}
+        <motion.div
+          className="relative flex h-10 w-10 shrink-0 items-center justify-center"
+          style={{
+            background: "var(--bauhaus-red)",
+            border: "3px solid var(--bauhaus-yellow)",
+            borderRadius: 0,
+          }}
+          whileHover={{ rotate: 12, scale: 1.08 }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+        >
+          <div
+            className="absolute h-5 w-5 rounded-full"
+            style={{ background: "var(--bauhaus-yellow)", opacity: 0.9 }}
+          />
+          <FlaskConical className="relative h-4 w-4 text-white z-10" />
+        </motion.div>
+
+        <div>
+          <p
+            className="text-xs font-black uppercase tracking-[0.2em] leading-none"
+            style={{ color: "var(--bauhaus-yellow)" }}
+          >
+            Rag
+          </p>
+          <p
+            className="text-lg font-black uppercase tracking-tight leading-none"
+            style={{ color: "var(--bauhaus-white)" }}
+          >
+            BENCH
+          </p>
         </div>
-        <span className="text-sm font-semibold tracking-tight text-foreground">RagBench</span>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-1 p-3 pt-4">
-        {navItems.map((item) => {
+      <nav className="flex-1 px-3 py-5 space-y-1">
+        {navItems.map((item, index) => {
           const active =
             item.href === "/"
               ? pathname === "/"
               : pathname.startsWith(item.href);
+
           return (
-            <Link
+            <motion.div
               key={item.href}
-              href={item.href}
-              className={cn(
-                "group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                active
-                  ? "bg-primary/8 text-primary shadow-sm"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-              )}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.06, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             >
-              <item.icon
-                className={cn(
-                  "h-4 w-4 shrink-0 transition-colors",
-                  active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+              <Link
+                href={item.href}
+                className="group relative flex items-center gap-3 px-3 py-2.5 text-sm font-bold uppercase tracking-widest transition-all duration-150"
+                style={{
+                  color: active ? "var(--bauhaus-black)" : "oklch(0.75 0.01 240)",
+                  background: active ? item.color : "transparent",
+                  borderLeft: active ? `4px solid var(--bauhaus-yellow)` : "4px solid transparent",
+                }}
+              >
+                {/* Hover bg */}
+                {!active && (
+                  <span
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                    style={{ background: `${item.color}22`, borderLeft: `4px solid ${item.color}` }}
+                  />
                 )}
-              />
-              {item.label}
-              {active && (
-                <span className="ml-auto h-2 w-2 rounded-full bg-primary" />
-              )}
-            </Link>
+
+                <item.icon
+                  className="relative h-4 w-4 shrink-0"
+                  style={{ color: active ? "var(--bauhaus-black)" : item.color }}
+                />
+                <span className="relative">{item.label}</span>
+
+                {/* Active geometric indicator */}
+                <AnimatePresence>
+                  {active && (
+                    <motion.span
+                      className="ml-auto relative h-2 w-2"
+                      style={{ background: "var(--bauhaus-black)" }}
+                      initial={{ scale: 0, rotate: 45 }}
+                      animate={{ scale: 1, rotate: 45 }}
+                      exit={{ scale: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                    />
+                  )}
+                </AnimatePresence>
+              </Link>
+            </motion.div>
           );
         })}
       </nav>
 
-      {/* Settings */}
-      <div className="border-t border-border/50 p-3">
-        <button
+      {/* Bottom section - yellow block */}
+      <div
+        className="p-3"
+        style={{ borderTop: "3px solid var(--bauhaus-yellow)" }}
+      >
+        <motion.button
           onClick={onOpenSettings}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-150 hover:bg-muted/60 hover:text-foreground"
+          className="flex w-full items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-widest transition-all duration-150"
+          style={{ color: "oklch(0.75 0.01 240)" }}
+          whileHover={{ x: 4, color: "var(--bauhaus-yellow)" }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
           <Settings className="h-4 w-4 shrink-0" />
           Pipeline Settings
-        </button>
+        </motion.button>
+
+        {/* Bauhaus footer decoration */}
+        <div className="mt-3 flex gap-1.5 px-3">
+          <div className="h-3 w-3 rounded-full bg-bauhaus-red" />
+          <div className="h-3 w-3 bg-bauhaus-yellow" />
+          <div className="h-3 w-3 rounded-full bg-bauhaus-blue" />
+        </div>
       </div>
     </aside>
   );
