@@ -51,7 +51,7 @@ export function ChunkPreview({ documentId, filename, onClose }: ChunkPreviewProp
   const totalPages = detail ? Math.ceil(detail.chunks.total / pageSize) : 0;
 
   return (
-    <Dialog open={!!documentId} onOpenChange={() => onClose()}>
+    <Dialog open={!!documentId} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Chunks: {filename}</DialogTitle>
@@ -63,21 +63,28 @@ export function ChunkPreview({ documentId, filename, onClose }: ChunkPreviewProp
           </div>
         ) : detail ? (
           <>
-            <ScrollArea className="h-[400px]">
-              <div className="space-y-3 pr-4">
-                {detail.chunks.items.map((chunk) => (
-                  <div
-                    key={chunk.index}
-                    className="rounded-md border p-3"
-                  >
-                    <div className="mb-1 text-xs font-medium text-muted-foreground">
-                      Chunk {chunk.index}
-                    </div>
-                    <p className="whitespace-pre-wrap text-sm">{chunk.text}</p>
-                  </div>
-                ))}
+            {detail.chunks.items.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                <p className="text-sm font-medium">No chunks found in the current vector store.</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Try switching or re-indexing the collection in Settings.</p>
               </div>
-            </ScrollArea>
+            ) : (
+              <ScrollArea className="h-[400px]">
+                <div className="space-y-3 pr-4">
+                  {detail.chunks.items.map((chunk) => (
+                    <div
+                      key={chunk.index}
+                      className="rounded-md border p-3"
+                    >
+                      <div className="mb-1 text-xs font-medium text-muted-foreground">
+                        Chunk {chunk.index}
+                      </div>
+                      <p className="whitespace-pre-wrap text-sm">{chunk.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
             <div className="flex items-center justify-between pt-2">
               <p className="text-xs text-muted-foreground">
                 Page {page} of {totalPages} ({detail.chunks.total} chunks)

@@ -2,10 +2,54 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
+import random
 from dataclasses import dataclass
 from typing import AsyncIterator, Protocol, runtime_checkable
 
 from exceptions import GenerationError
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Exponential backoff helper (used by all API providers)
+# ---------------------------------------------------------------------------
+
+async def _call_with_backoff(fn, max_retries: int = 3, base_delay: float = 1.0):
+    """Call *fn()* and retry on transient API errors with exponential backoff + jitter.
+
+    Only sleeps when OpenAI/Anthropic/Gemini returns a rate-limit (429) or
+    server error (5xx). Any other exception propagates immediately.
+    No artificial waiting is added between normal sequential questions.
+    """
+    for attempt in range(max_retries + 1):
+        try:
+            return await fn()
+        except Exception as exc:
+            msg = str(exc).lower()
+            is_transient = (
+                "429" in msg
+                or "rate limit" in msg
+                or "rate_limit" in msg
+                or "server error" in msg
+                or "502" in msg
+                or "503" in msg
+                or "504" in msg
+                or "timeout" in msg
+                or "connection" in msg
+            )
+            if not is_transient or attempt == max_retries:
+                raise
+            # Exponential backoff: 1s, 2s, 4s  + ±30% jitter
+            delay = base_delay * (2 ** attempt) * (0.7 + random.random() * 0.6)
+            logger.warning(
+                "Transient API error (attempt %d/%d), retrying in %.1fs: %s",
+                attempt + 1, max_retries, delay, exc,
+            )
+            await asyncio.sleep(delay)
+
 
 
 @dataclass
@@ -33,13 +77,38 @@ class LLMProtocol(Protocol):
 
 
 class OpenAILLM:
-    """OpenAI chat-completion provider (GPT-4o, GPT-3.5-turbo, etc.)."""
+    """OpenAI chat-completion provider (GPT-4o, GPT-3.5-turbo, gpt-5-nano, etc.)."""
 
-    # Cost per 1M tokens (input, output) for common models
+    # Cost per 1M tokens (input, output) — sourced from platform.openai.com/docs/models
     COST_MAP = {
-        "gpt-5-nano": (0.10, 0.40),
-        "gpt-4o-mini": (0.15, 0.60),
-        "gpt-4o": (2.50, 10.00),
+        # --- GPT-5 family ---
+        "gpt-5-nano": (0.05, 0.40),           # fastest, cheapest GPT-5
+        "gpt-5-mini": (0.40, 1.60),           # near-frontier, cost-sensitive
+        "gpt-5": (2.00, 8.00),                # full GPT-5
+        "gpt-5-pro": (6.00, 24.00),           # smarter GPT-5
+        # --- GPT-5.4 family ---
+        "gpt-5.4-nano": (0.20, 1.25),         # cheapest GPT-5.4-class
+        "gpt-5.4-mini": (0.75, 4.50),         # strong mini for coding/computer-use
+        "gpt-5.4": (2.00, 8.00),              # affordable coding/professional
+        "gpt-5.4-pro": (6.00, 24.00),         # smarter GPT-5.4
+        # --- GPT-5.6 family (current recommended) ---
+        "gpt-5.6-luna": (0.40, 1.60),         # cost-sensitive high-volume
+        "gpt-5.6-terra": (1.50, 6.00),        # balance intelligence and cost
+        "gpt-5.6-sol": (3.00, 12.00),         # flagship, complex reasoning
+        # --- GPT-4.1 family ---
+        "gpt-4.1-nano": (0.10, 0.40),         # fastest GPT-4.1, 1M context
+        "gpt-4.1-mini": (0.40, 1.60),         # smaller/faster GPT-4.1
+        "gpt-4.1": (2.00, 8.00),              # smartest non-reasoning
+        # --- GPT-4o family ---
+        "gpt-4o-mini": (0.15, 0.60),          # fast affordable small model
+        "gpt-4o": (2.50, 10.00),              # fast intelligent flexible
+        # --- o-series reasoning ---
+        "o4-mini": (1.10, 4.40),              # fast cost-efficient reasoning
+        "o3-mini": (1.10, 4.40),              # small o3 alternative
+        "o3": (10.00, 40.00),                 # strong reasoning
+        "o1-mini": (1.10, 4.40),              # small o1 alternative
+        "o1": (15.00, 60.00),                 # full o1 reasoning
+        # --- Legacy ---
         "gpt-4-turbo": (10.00, 30.00),
         "gpt-3.5-turbo": (0.50, 1.50),
     }
@@ -57,14 +126,16 @@ class OpenAILLM:
     async def generate(
         self, system_prompt: str, user_prompt: str
     ) -> LLMResponse:
-        try:
-            response = await self.client.chat.completions.create(
+        async def _call():
+            return await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
             )
+        try:
+            response = await _call_with_backoff(_call)
             choice = response.choices[0]
             usage = response.usage
             return LLMResponse(
@@ -80,6 +151,7 @@ class OpenAILLM:
             raise
         except Exception as e:
             raise GenerationError(f"OpenAI generation failed: {e}")
+
 
     async def generate_stream(
         self, system_prompt: str, user_prompt: str
@@ -129,13 +201,15 @@ class AnthropicLLM:
     async def generate(
         self, system_prompt: str, user_prompt: str
     ) -> LLMResponse:
-        try:
-            response = await self.client.messages.create(
+        async def _call():
+            return await self.client.messages.create(
                 model=self.model,
                 max_tokens=2048,
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_prompt}],
             )
+        try:
+            response = await _call_with_backoff(_call)
             text = response.content[0].text if response.content else ""
             input_tokens = response.usage.input_tokens
             output_tokens = response.usage.output_tokens
@@ -270,11 +344,10 @@ class GeminiLLM:
     async def generate(
         self, system_prompt: str, user_prompt: str
     ) -> LLMResponse:
-        import asyncio
         from google.genai import types
 
-        try:
-            response = await asyncio.to_thread(
+        async def _call():
+            return await asyncio.to_thread(
                 self.client.models.generate_content,
                 model=self.model,
                 contents=user_prompt,
@@ -283,6 +356,8 @@ class GeminiLLM:
                     max_output_tokens=2048,
                 ),
             )
+        try:
+            response = await _call_with_backoff(_call)
             text = response.text or ""
             usage = response.usage_metadata
             input_tokens = usage.prompt_token_count if usage else 0
@@ -373,7 +448,7 @@ def create_llm(model: str, settings=None) -> LLMProtocol:
 
         settings = get_settings()
 
-    if model.startswith("gpt-") or model.startswith("o1") or model.startswith("o3"):
+    if model.startswith("gpt-") or model.startswith("o1") or model.startswith("o3") or model.startswith("o4"):
         if not settings.OPENAI_API_KEY:
             raise GenerationError(
                 "OPENAI_API_KEY not configured. Add it to .env to use GPT models."

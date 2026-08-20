@@ -181,7 +181,7 @@ class QdrantVectorStore:
         try:
             points: list[PointStruct] = []
             for chunk, vector in zip(chunks, vectors):
-                point_id = str(uuid.uuid4())
+                point_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{doc_id}_{chunk['chunk_index']}"))
                 payload = {
                     "text": chunk["text"],
                     "doc_id": doc_id,
@@ -268,22 +268,33 @@ class QdrantVectorStore:
     async def scroll_by_doc_id(
         self, doc_id: str, limit: int = 100, offset: int = 0
     ) -> list[VectorSearchResult]:
-        """Fetch chunks for a document using Qdrant scroll (no query vector)."""
+        """Fetch chunks for a document, sorted by chunk_index with proper pagination."""
         from qdrant_client.http.models import FieldCondition, Filter, MatchValue
 
         try:
-            response = await self._client.scroll(
-                collection_name=self._collection,
-                scroll_filter=Filter(
-                    must=[FieldCondition(key="doc_id", match=MatchValue(value=doc_id))]
-                ),
-                limit=limit,
-                offset=offset,
-                with_payload=True,
-                with_vectors=False,
-            )
+            # Qdrant's scroll offset is a point ID token, not integer index.
+            # To provide deterministic index-ordered chunks, retrieve all points for the doc,
+            # sort by chunk_index, and slice offset:offset+limit.
+            all_points = []
+            next_page_offset = None
+            while True:
+                response = await self._client.scroll(
+                    collection_name=self._collection,
+                    scroll_filter=Filter(
+                        must=[FieldCondition(key="doc_id", match=MatchValue(value=doc_id))]
+                    ),
+                    limit=100,
+                    offset=next_page_offset,
+                    with_payload=True,
+                    with_vectors=False,
+                )
+                points, next_page_offset = response
+                all_points.extend(points)
+                if next_page_offset is None or not points:
+                    break
+
             results: list[VectorSearchResult] = []
-            for point in response[0]:
+            for point in all_points:
                 payload = point.payload or {}
                 results.append(
                     VectorSearchResult(
@@ -297,7 +308,9 @@ class QdrantVectorStore:
                         chunk_strategy=payload.get("chunk_strategy", ""),
                     )
                 )
-            return results
+
+            results.sort(key=lambda r: r.chunk_index)
+            return results[offset : offset + limit]
         except VectorStoreError:
             raise
         except Exception as exc:

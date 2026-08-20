@@ -102,6 +102,57 @@ async def get_document(
     page_chunks = await vector_store.scroll_by_doc_id(
         doc_id=str(doc.id), limit=page_size, offset=offset
     )
+
+    # If current active collection doesn't have the chunks (e.g., config changed),
+    # search across available docs_* collections in Qdrant
+    if not page_chunks and hasattr(vector_store, "list_collections") and hasattr(vector_store, "_client"):
+        try:
+            cols = await vector_store.list_collections()
+            for col in cols:
+                col_name = col["name"]
+                if col_name == getattr(vector_store, "_collection", ""):
+                    continue
+                from qdrant_client.http.models import FieldCondition, Filter, MatchValue
+                all_points = []
+                next_page_offset = None
+                while True:
+                    resp = await vector_store._client.scroll(
+                        collection_name=col_name,
+                        scroll_filter=Filter(
+                            must=[FieldCondition(key="doc_id", match=MatchValue(value=str(doc.id)))]
+                        ),
+                        limit=100,
+                        offset=next_page_offset,
+                        with_payload=True,
+                        with_vectors=False,
+                    )
+                    points, next_page_offset = resp
+                    all_points.extend(points)
+                    if next_page_offset is None or not points:
+                        break
+
+                if all_points:
+                    for point in all_points:
+                        payload = point.payload or {}
+                        from vectorstore.qdrant_store import VectorSearchResult
+                        page_chunks.append(
+                            VectorSearchResult(
+                                id=str(point.id),
+                                text=payload.get("text", ""),
+                                score=1.0,
+                                doc_id=payload.get("doc_id", ""),
+                                source_file=payload.get("source_file", ""),
+                                page_number=payload.get("page_number", 0),
+                                chunk_index=payload.get("chunk_index", 0),
+                                chunk_strategy=payload.get("chunk_strategy", ""),
+                            )
+                        )
+                    page_chunks.sort(key=lambda c: c.chunk_index)
+                    page_chunks = page_chunks[offset : offset + page_size]
+                    break
+        except Exception:
+            pass
+
     page_chunks.sort(key=lambda c: c.chunk_index)
 
     chunk_items = [ChunkItem(index=c.chunk_index, text=c.text) for c in page_chunks]
