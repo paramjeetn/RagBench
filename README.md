@@ -8,9 +8,12 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker)](https://docs.docker.com/compose/)
+[![Docker Hub Backend](https://img.shields.io/badge/Docker%20Hub-backend-2496ED?style=flat-square&logo=docker)](https://hub.docker.com/r/paramjeetn/ragbench-backend)
+[![Docker Hub Frontend](https://img.shields.io/badge/Docker%20Hub-frontend-2496ED?style=flat-square&logo=docker)](https://hub.docker.com/r/paramjeetn/ragbench-frontend)
+[![Website](https://img.shields.io/badge/Website-ragbench--web.vercel.app-000000?style=flat-square&logo=vercel)](https://ragbench-web.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
-[Docs](#architecture) · [Quick Start](#quick-start) · [API Reference](#api)
+[Website](https://ragbench-web.vercel.app) · [Docs](#architecture) · [Quick Start](#quick-start) · [Docker Hub](#option-a-instant-run-with-docker-hub-recommended) · [API Reference](#api)
 
 </div>
 
@@ -30,11 +33,21 @@ One command to run. No config files to write. Seed data included.
 
 ## Quick Start
 
-**Prerequisites:** Docker + Docker Compose, and at least one LLM API key (OpenAI, Gemini, or Anthropic).
+### Option A: Instant Run with Docker Hub (Recommended)
+No local build or repository cloning required. Download the pre-configured compose manifest and run:
 
 ```bash
-git clone https://github.com/paramjeetn/ragbench.git
-cd ragbench
+# 1. Download compose file
+curl -O https://raw.githubusercontent.com/paramjeetn/RagBench/main/docker-compose.hub.yml
+
+# 2. Launch stack with prebuilt images
+docker compose -f docker-compose.hub.yml up -d
+```
+
+### Option B: Clone & Build from Source
+```bash
+git clone https://github.com/paramjeetn/RagBench.git
+cd RagBench
 cp .env.example .env
 # Edit .env — add OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY
 make up
@@ -42,16 +55,17 @@ make up
 
 | Service | URL |
 |---|---|
-| Frontend | http://localhost:3000 |
+| Frontend UI | http://localhost:3000 |
 | API Docs (Swagger) | http://localhost:8000/docs |
 | Qdrant Dashboard | http://localhost:6333/dashboard |
+| Live Website | https://ragbench-web.vercel.app |
 
 Seed data loads automatically — the dashboard shows real eval results on first launch.
 
 ```bash
 make logs       # tail all services
 make down       # stop
-make clean      # stop + wipe volumes (fresh start)
+make clean-data # stop + wipe volumes (fresh start)
 ```
 
 ---
