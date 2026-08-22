@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RagBench Frontend
 
-## Getting Started
+Next.js 16 web application and evaluation dashboard for **RagBench**, an open-source platform for evaluating, comparing, and optimizing RAG (Retrieval-Augmented Generation) pipelines.
 
-First, run the development server:
+The frontend provides the main interface for managing projects, testing RAG pipelines, running evaluations, and comparing results.
+
+## 🚀 Quick Start with Docker Compose
+
+The recommended way to run RagBench is with the prebuilt Docker images and Docker Compose.
+
+### 1. Download the Compose file
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+curl -O https://raw.githubusercontent.com/paramjeetn/RagBench/main/docker-compose.hub.yml
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Start the stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+docker compose -f docker-compose.hub.yml up -d
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This starts the complete RagBench stack, including the frontend, FastAPI backend, PostgreSQL, and Qdrant.
 
-## Learn More
+### 3. Open the dashboard
 
-To learn more about Next.js, take a look at the following resources:
+```text
+http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The frontend is configured to communicate with the backend at:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```text
+http://localhost:8000
+```
 
-## Deploy on Vercel
+## 🎨 What You Can Do
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Projects
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Organize evaluation datasets, pipeline configurations, and evaluation runs into separate projects.
+
+### Document Studio
+
+Upload PDF, Markdown, and TXT documents and inspect the ingestion process, including chunking and vector indexing.
+
+### Interactive Chat
+
+Test your RAG pipeline interactively with live retrieval and generation, including source citations for retrieved context.
+
+### Evaluation Runner
+
+Run RAG evaluation suites and inspect metric scores for individual questions and complete evaluation runs.
+
+### Side-by-Side Comparison
+
+Compare two evaluation runs with visual metric comparisons and radar charts to see whether a pipeline change improved results.
+
+### Pipeline Settings
+
+Configure the main RAG pipeline components directly from the UI, including:
+
+- Chunking strategy
+- Embedding model
+- Retrieval mode
+- Reranker
+- LLM provider and model
+- API keys
+
+API keys configured in the dashboard are stored in the browser's local storage and are not committed to the repository.
+
+## 🏗️ Frontend Architecture
+
+```text
+Next.js 16
+    │
+    ├── Dashboard
+    ├── Projects
+    ├── Documents
+    ├── Interactive Chat
+    ├── Evaluation Runner
+    ├── Run Comparison
+    └── Pipeline Settings
+            │
+            ▼
+       FastAPI Backend
+            │
+            ├── PostgreSQL
+            └── Qdrant
+```
+
+## ⚙️ Configuration
+
+The Docker Compose deployment sets the frontend API endpoint automatically:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+For local development, configure the same variable in your environment if the backend is running on a different address.
+
+## 💻 Local Development
+
+For frontend-only development:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+The frontend requires a running RagBench backend for API-backed functionality.
+
+## 🔗 Links
+
+- **GitHub Repository:** https://github.com/paramjeetn/RagBench
+- **Website & Documentation:** https://ragbench-web.vercel.app
+- **Backend API:** http://localhost:8000
+- **Swagger Docs:** http://localhost:8000/docs
+
+## 📄 License
+
+MIT © [Paramjeet](https://github.com/paramjeetn)
