@@ -22,7 +22,7 @@ export default function LandingPage() {
   const commandText = `git clone https://github.com/paramjeetn/RagBench
 cd RagBench
 cp .env.example .env   # add your LLM key
-make docker-up`;
+make up`;
 
   const handleCopy = async () => {
     try {
@@ -265,7 +265,7 @@ make docker-up`;
                       <span className="text-[#F4C542]">$ </span>git clone https://github.com/paramjeetn/RagBench{"\n"}
                       <span className="text-[#F4C542]">$ </span>cd RagBench{"\n"}
                       <span className="text-[#F4C542]">$ </span>cp .env.example .env <span className="text-zinc-500"># add your LLM key</span>{"\n"}
-                      <span className="text-[#F4C542]">$ </span>make docker-up
+                      <span className="text-[#F4C542]">$ </span>make up
                     </code>
                   </pre>
                 </div>
