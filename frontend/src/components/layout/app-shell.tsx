@@ -9,6 +9,8 @@ import { ChatProvider } from "@/context/chat-context";
 import { EvalProvider } from "@/context/eval-context";
 import { ProjectProvider } from "@/context/project-context";
 
+const BARE_ROUTES = ["/landing"];
+
 function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
@@ -29,6 +31,12 @@ function PageTransition({ children }: { children: React.ReactNode }) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Landing page and other bare routes render without sidebar chrome
+  if (BARE_ROUTES.some((r) => pathname.startsWith(r))) {
+    return <>{children}</>;
+  }
 
   return (
     <ProjectProvider>
