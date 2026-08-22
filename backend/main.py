@@ -10,6 +10,7 @@ from sqlalchemy import text
 
 from database.session import engine, init_db
 from api.dependencies import get_vector_store
+from api.middleware import ApiKeyHeaderMiddleware
 from exceptions import RAGEvalError
 
 logging.basicConfig(level=logging.INFO)
@@ -46,8 +47,9 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-Gemini-Api-Key", "X-Openai-Api-Key", "X-Anthropic-Api-Key", "X-Qdrant-Api-Key"],
 )
+app.add_middleware(ApiKeyHeaderMiddleware)
 
 
 # ---------------------------------------------------------------------------

@@ -448,24 +448,33 @@ def create_llm(model: str, settings=None) -> LLMProtocol:
 
         settings = get_settings()
 
+    from api.middleware import (
+        get_effective_anthropic_key,
+        get_effective_gemini_key,
+        get_effective_openai_key,
+    )
+
     if model.startswith("gpt-") or model.startswith("o1") or model.startswith("o3") or model.startswith("o4"):
-        if not settings.OPENAI_API_KEY:
+        openai_key = get_effective_openai_key(settings.OPENAI_API_KEY)
+        if not openai_key:
             raise GenerationError(
                 "OPENAI_API_KEY not configured. Add it to .env to use GPT models."
             )
-        return OpenAILLM(api_key=settings.OPENAI_API_KEY, model=model)
+        return OpenAILLM(api_key=openai_key, model=model)
     elif model.startswith("claude-"):
-        if not settings.ANTHROPIC_API_KEY:
+        anthropic_key = get_effective_anthropic_key(settings.ANTHROPIC_API_KEY)
+        if not anthropic_key:
             raise GenerationError(
                 "ANTHROPIC_API_KEY not configured. Add it to .env to use Claude models."
             )
-        return AnthropicLLM(api_key=settings.ANTHROPIC_API_KEY, model=model)
+        return AnthropicLLM(api_key=anthropic_key, model=model)
     elif model.startswith("gemini-"):
-        if not settings.GEMINI_API_KEY:
+        gemini_key = get_effective_gemini_key(settings.GEMINI_API_KEY)
+        if not gemini_key:
             raise GenerationError(
                 "GEMINI_API_KEY not configured. Add it to .env to use Gemini models."
             )
-        return GeminiLLM(api_key=settings.GEMINI_API_KEY, model=model)
+        return GeminiLLM(api_key=gemini_key, model=model)
     else:
         # Default to Ollama for anything else (llama3, mistral, etc.)
         return OllamaLLM(base_url=settings.OLLAMA_BASE_URL, model=model)

@@ -9,7 +9,7 @@ import { ChatProvider } from "@/context/chat-context";
 import { EvalProvider } from "@/context/eval-context";
 import { ProjectProvider } from "@/context/project-context";
 
-const BARE_ROUTES = ["/landing"];
+const BARE_ROUTES = ["/home"];
 
 function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

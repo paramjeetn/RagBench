@@ -288,6 +288,13 @@ make up`;
                   <span>CLONE & RUN</span>
                   <ArrowRight className="h-4 w-4" />
                 </a>
+                <a
+                  href="/"
+                  className="text-xs font-bold uppercase tracking-wider text-center block mt-2"
+                  style={{ color: "#E63946" }}
+                >
+                  → Already running? Open app
+                </a>
                 <p className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground mt-3">
                   Requires Docker · runs on localhost:3000
                 </p>
@@ -399,12 +406,27 @@ make up`;
                     </p>
                   </div>
                 </div>
+
+                {/* Settings prompt for cloud users */}
+                <div
+                  className="flex items-start gap-2.5 px-3 py-2.5 mt-2"
+                  style={{
+                    background: "oklch(0.98 0.004 80)",
+                    border: "2px solid #2563EB",
+                    borderLeft: "4px solid #2563EB",
+                  }}
+                >
+                  <span className="text-base mt-0.5">⚙️</span>
+                  <p className="text-xs font-medium leading-relaxed" style={{ color: "#0a0a14" }}>
+                    After deploy, click <strong>Pipeline Settings</strong> (gear icon in sidebar) to enter your API key. Keys stay in your browser.
+                  </p>
+                </div>
               </div>
 
               {/* Action Button & Note */}
               <div className="mt-8 pt-4">
                 <a
-                  href="https://railway.app/new/template"
+                  href="https://railway.app/new/template?template=https://github.com/paramjeetn/RagBench-Cloud"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-flex items-center justify-center gap-3 px-6 py-4 text-sm font-black uppercase tracking-widest text-white transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
@@ -417,6 +439,13 @@ make up`;
                 >
                   <span>DEPLOY TO RAILWAY</span>
                   <ExternalLink className="h-4 w-4" />
+                </a>
+                <a
+                  href="/"
+                  className="text-xs font-bold uppercase tracking-wider text-center block mt-2"
+                  style={{ color: "#2563EB" }}
+                >
+                  → Already deployed? Open app
                 </a>
                 <p className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground mt-3">
                   Requires: GEMINI_API_KEY or OPENAI_API_KEY or ANTHROPIC_API_KEY

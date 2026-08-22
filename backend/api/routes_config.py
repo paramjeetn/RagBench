@@ -58,7 +58,16 @@ def _config_response() -> PipelineConfigResponse:
     config = get_pipeline_config()
     active_collection = get_collection_name(config)
     s = get_settings()
-    scoring_available = bool(s.OPENAI_API_KEY or s.ANTHROPIC_API_KEY or s.GEMINI_API_KEY)
+    from api.middleware import (
+        get_effective_anthropic_key,
+        get_effective_gemini_key,
+        get_effective_openai_key,
+    )
+    scoring_available = bool(
+        get_effective_openai_key(s.OPENAI_API_KEY)
+        or get_effective_anthropic_key(s.ANTHROPIC_API_KEY)
+        or get_effective_gemini_key(s.GEMINI_API_KEY)
+    )
     return PipelineConfigResponse(
         chunking=ChunkingConfigSchema(
             strategy=config.chunking.strategy.value,

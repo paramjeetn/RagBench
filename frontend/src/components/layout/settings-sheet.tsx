@@ -18,8 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Scissors, Search, Cpu, Database, CheckCircle2 } from "lucide-react";
-import { api } from "@/lib/api";
+import { Loader2, Scissors, Search, Cpu, Database, CheckCircle2, Key, Eye, EyeOff } from "lucide-react";
+import { api, API_KEY_STORAGE } from "@/lib/api";
 import type { PipelineConfigResponse, PipelineConfigUpdateRequest } from "@/lib/types";
 
 const LLM_MODELS: Record<string, { label: string; value: string }[]> = {
@@ -132,6 +132,13 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const [embProvider, setEmbProvider] = useState("");
   const [embModel, setEmbModel] = useState("");
 
+  // API Keys state (cloud mode)
+  const [geminiKey, setGeminiKey] = useState("");
+  const [openaiKey, setOpenaiKey] = useState("");
+  const [anthropicKey, setAnthropicKey] = useState("");
+  const [showKeys, setShowKeys] = useState(false);
+  const [keysSaved, setKeysSaved] = useState(false);
+
   const loadConfig = useCallback(async () => {
     const cfg = await api.get<PipelineConfigResponse>("/api/config/");
     setConfig(cfg);
@@ -146,6 +153,10 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     setLlmModel(cfg.generation.model);
     setEmbProvider(cfg.embedding.provider);
     setEmbModel(cfg.embedding.model);
+    // Load API keys from localStorage
+    setGeminiKey(localStorage.getItem(API_KEY_STORAGE.gemini) ?? "");
+    setOpenaiKey(localStorage.getItem(API_KEY_STORAGE.openai) ?? "");
+    setAnthropicKey(localStorage.getItem(API_KEY_STORAGE.anthropic) ?? "");
   }, []);
 
   useEffect(() => {
@@ -194,6 +205,17 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     }, 2000);
     return () => clearInterval(interval);
   }, [polling, runSuccessAnimation]);
+
+  const handleSaveKeys = () => {
+    if (geminiKey.trim()) localStorage.setItem(API_KEY_STORAGE.gemini, geminiKey.trim());
+    else localStorage.removeItem(API_KEY_STORAGE.gemini);
+    if (openaiKey.trim()) localStorage.setItem(API_KEY_STORAGE.openai, openaiKey.trim());
+    else localStorage.removeItem(API_KEY_STORAGE.openai);
+    if (anthropicKey.trim()) localStorage.setItem(API_KEY_STORAGE.anthropic, anthropicKey.trim());
+    else localStorage.removeItem(API_KEY_STORAGE.anthropic);
+    setKeysSaved(true);
+    setTimeout(() => setKeysSaved(false), 2000);
+  };
 
   const handleApply = async () => {
     if (!config) return;
@@ -257,6 +279,73 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
           </div>
         ) : (
           <div className="space-y-6 px-6 py-5">
+
+            {/* API Keys — cloud mode */}
+            <section className="space-y-3">
+              <div className="flex items-center justify-between pb-1">
+                <div className="flex items-center gap-2">
+                  <Key className="h-3.5 w-3.5 text-primary" />
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">API Keys</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowKeys((v) => !v)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showKeys ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Required for cloud deployment. Stored in your browser only — never sent to any server except your chosen LLM provider.
+              </p>
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground/80">Gemini API Key</label>
+                  <Input
+                    type={showKeys ? "text" : "password"}
+                    value={geminiKey}
+                    onChange={(e) => setGeminiKey(e.target.value)}
+                    placeholder="AIza..."
+                    className="h-8 font-mono text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground/80">OpenAI API Key</label>
+                  <Input
+                    type={showKeys ? "text" : "password"}
+                    value={openaiKey}
+                    onChange={(e) => setOpenaiKey(e.target.value)}
+                    placeholder="sk-..."
+                    className="h-8 font-mono text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground/80">Anthropic API Key</label>
+                  <Input
+                    type={showKeys ? "text" : "password"}
+                    value={anthropicKey}
+                    onChange={(e) => setAnthropicKey(e.target.value)}
+                    placeholder="sk-ant-..."
+                    className="h-8 font-mono text-xs"
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={handleSaveKeys}
+                size="sm"
+                variant="outline"
+                className="w-full transition-all duration-300"
+                style={keysSaved ? { borderColor: "#16a34a", color: "#16a34a" } : undefined}
+              >
+                {keysSaved ? (
+                  <><CheckCircle2 className="mr-2 h-3.5 w-3.5" />Saved to browser</>
+                ) : (
+                  <><Key className="mr-2 h-3.5 w-3.5" />Save API Keys</>  
+                )}
+              </Button>
+            </section>
+
+            <Separator />
 
             {/* Chunking */}
             <section className="space-y-3">

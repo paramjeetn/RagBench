@@ -246,12 +246,14 @@ def create_embedder(
     dimension = embedding_config.dimension
 
     if provider == "openai":
-        api_key = settings.OPENAI_API_KEY
+        from api.middleware import get_effective_openai_key
+        api_key = get_effective_openai_key(settings.OPENAI_API_KEY)
         if not api_key:
             raise EmbeddingError(message="OpenAI API key is required for OpenAI embeddings")
         return OpenAIEmbedder(api_key=api_key, model=model, dimension=dimension)
     elif provider == "gemini":
-        api_key = settings.GEMINI_API_KEY
+        from api.middleware import get_effective_gemini_key
+        api_key = get_effective_gemini_key(settings.GEMINI_API_KEY)
         if not api_key:
             raise EmbeddingError(message="Gemini API key is required for Gemini embeddings")
         return GeminiEmbedder(api_key=api_key, model=model, dimension=dimension)
