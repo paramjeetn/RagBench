@@ -130,6 +130,7 @@ async def start_eval_run(
             dataset_id=body.dataset_id,
             document_ids=document_ids,
             session_factory=async_session_factory,
+            project_id=body.project_id,
         )
     )
 

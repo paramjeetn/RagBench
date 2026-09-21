@@ -17,6 +17,15 @@ export function getStoredApiKeys(): Record<string, string> {
   if (openai) keys["X-Openai-Api-Key"] = openai;
   if (anthropic) keys["X-Anthropic-Api-Key"] = anthropic;
   if (qdrant) keys["X-Qdrant-Api-Key"] = qdrant;
+
+  const projectStr = localStorage.getItem("ragbench_active_project");
+  if (projectStr) {
+    try {
+      const p = JSON.parse(projectStr);
+      if (p.id) keys["X-Project-Id"] = p.id;
+    } catch {}
+  }
+
   return keys;
 }
 

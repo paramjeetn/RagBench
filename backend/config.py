@@ -114,20 +114,21 @@ def get_settings() -> Settings:
 # Mutable pipeline config (not cached) — stored per project_id
 # Key: project_id (str UUID) or "__default__" for no project
 _pipeline_configs: dict[str, PipelineConfig] = {}
+# Deprecated global state (kept for eval runner which executes out-of-request)
 _active_project_id: str | None = None
 
-
 def set_active_project(project_id: str | None) -> None:
-    """Set the globally active project. Called when switching projects."""
+    """Set fallback global project (for background eval runner)."""
     global _active_project_id
     _active_project_id = project_id
 
 
-def get_active_project() -> str | None:
-    return _active_project_id
-
-
 def _config_key() -> str:
+    from api.middleware import get_effective_project_id
+    # Prefer request-scoped header, fall back to global if in background task
+    req_id = get_effective_project_id()
+    if req_id:
+        return req_id
     return _active_project_id or "__default__"
 
 

@@ -34,26 +34,14 @@ class EvalRunner:
         dataset_id: str,
         document_ids: list[str],
         session_factory,
+        project_id: str | None = None,
     ) -> None:
-        """Execute an evaluation run asynchronously.
+        """Execute an evaluation run asynchronously."""
+        # Set the request context for this background task so pipeline configs route correctly
+        if project_id:
+            from api.middleware import _request_project_id
+            _request_project_id.set(project_id)
 
-        This is designed to be called via ``asyncio.create_task``.  It loads
-        QA pairs from the dataset, queries the pipeline for each one,
-        computes metrics, and writes per-question results plus the
-        aggregated summary back to the database.
-
-        Parameters
-        ----------
-        run_id : str
-            UUID (as string) of the ``EvalRun`` row that was already created.
-        dataset_id : str
-            UUID (as string) of the ``Dataset`` to evaluate against.
-        document_ids : list[str]
-            Document scope for retrieval (may be empty for all docs).
-        session_factory : async context-manager
-            Callable that returns an ``AsyncSession`` (e.g.
-            ``async_sessionmaker``).
-        """
         run_uuid = UUID(run_id)
         dataset_uuid = UUID(dataset_id)
 

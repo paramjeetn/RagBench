@@ -19,16 +19,18 @@ _request_gemini_key: ContextVar[str | None] = ContextVar("request_gemini_key", d
 _request_openai_key: ContextVar[str | None] = ContextVar("request_openai_key", default=None)
 _request_anthropic_key: ContextVar[str | None] = ContextVar("request_anthropic_key", default=None)
 _request_qdrant_key: ContextVar[str | None] = ContextVar("request_qdrant_key", default=None)
+_request_project_id: ContextVar[str | None] = ContextVar("request_project_id", default=None)
 
 
 class ApiKeyHeaderMiddleware(BaseHTTPMiddleware):
-    """Extract API keys from request headers and store in context vars."""
+    """Extract API keys and project ID from request headers and store in context vars."""
 
     async def dispatch(self, request: Request, call_next) -> Response:
         gemini = request.headers.get("X-Gemini-Api-Key")
         openai = request.headers.get("X-Openai-Api-Key")
         anthropic = request.headers.get("X-Anthropic-Api-Key")
         qdrant = request.headers.get("X-Qdrant-Api-Key")
+        project_id = request.headers.get("X-Project-Id")
 
         tokens = []
         if gemini:
@@ -39,6 +41,8 @@ class ApiKeyHeaderMiddleware(BaseHTTPMiddleware):
             tokens.append(_request_anthropic_key.set(anthropic))
         if qdrant:
             tokens.append(_request_qdrant_key.set(qdrant))
+        if project_id:
+            tokens.append(_request_project_id.set(project_id))
 
         try:
             response = await call_next(request)
@@ -47,6 +51,10 @@ class ApiKeyHeaderMiddleware(BaseHTTPMiddleware):
                 token.var.reset(token)
 
         return response
+
+
+def get_effective_project_id() -> str | None:
+    return _request_project_id.get()
 
 
 def get_effective_gemini_key(env_key: str | None) -> str | None:
