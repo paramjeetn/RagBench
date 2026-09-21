@@ -16,9 +16,10 @@ import type { DatasetSummaryResponse, DocumentResponse } from "@/lib/types";
 
 interface UploadDatasetProps {
   onUploaded: (ds: DatasetSummaryResponse) => void;
+  projectId?: string;
 }
 
-export function UploadDataset({ onUploaded }: UploadDatasetProps) {
+export function UploadDataset({ onUploaded, projectId }: UploadDatasetProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -29,10 +30,18 @@ export function UploadDataset({ onUploaded }: UploadDatasetProps) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (open) {
-      api.get<DocumentResponse[]>("/api/documents/").then(setDocuments).catch(() => {});
-    }
-  }, [open]);
+    if (!open) return;
+    const url = projectId
+      ? `/api/documents/?project_id=${projectId}`
+      : "/api/documents/";
+    api.get<DocumentResponse[]>(url)
+      .then((docs) => {
+        setDocuments(docs);
+        // Pre-select all project docs by default
+        setSelectedDocs(docs.map((d) => d.id));
+      })
+      .catch(() => {});
+  }, [open, projectId]);
 
   const toggleDoc = (id: string) => {
     setSelectedDocs((prev) =>
@@ -49,10 +58,8 @@ export function UploadDataset({ onUploaded }: UploadDatasetProps) {
       formData.append("file", file);
       formData.append("name", name.trim());
       formData.append("document_ids", JSON.stringify(selectedDocs));
-      const ds = await api.upload<DatasetSummaryResponse>(
-        "/api/datasets/upload",
-        formData
-      );
+      if (projectId) formData.append("project_id", projectId);
+      const ds = await api.upload<DatasetSummaryResponse>("/api/datasets/upload", formData);
       onUploaded(ds);
       setOpen(false);
       setName("");
@@ -67,11 +74,7 @@ export function UploadDataset({ onUploaded }: UploadDatasetProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button variant="outline" size="sm" />
-        }
-      >
+      <DialogTrigger render={<Button variant="outline" size="sm" />}>
         <Upload className="mr-2 h-4 w-4" />
         Upload Dataset
       </DialogTrigger>
@@ -80,6 +83,10 @@ export function UploadDataset({ onUploaded }: UploadDatasetProps) {
           <DialogTitle>Upload Evaluation Dataset</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
+          <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+            Expected format: <code className="font-mono">[{'{"question": "...", "ground_truth": "..."}'}]</code>
+          </div>
+
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground">Dataset Name</label>
             <Input
@@ -90,9 +97,7 @@ export function UploadDataset({ onUploaded }: UploadDatasetProps) {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">
-              JSON File (array of {`{question, ground_truth}`})
-            </label>
+            <label className="text-xs text-muted-foreground">JSON File</label>
             <div
               className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed p-3 hover:bg-muted/50"
               onClick={() => fileRef.current?.click()}
@@ -101,78 +106,44 @@ export function UploadDataset({ onUploaded }: UploadDatasetProps) {
                 <>
                   <FileJson className="h-4 w-4 text-primary" />
                   <span className="flex-1 truncate text-sm">{file.name}</span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFile(null);
-                    }}
-                  >
+                  <button type="button" onClick={(e) => { e.stopPropagation(); setFile(null); }}>
                     <X className="h-4 w-4 text-muted-foreground" />
                   </button>
                 </>
               ) : (
-                <span className="text-sm text-muted-foreground">
-                  Click to select a .json file
-                </span>
+                <span className="text-sm text-muted-foreground">Click to select a .json file</span>
               )}
             </div>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-            />
+            <input ref={fileRef} type="file" accept=".json" className="hidden"
+              onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </div>
 
           {documents.length > 0 && (
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">
-                Scope to Documents (optional)
+                Documents to evaluate against ({selectedDocs.length}/{documents.length} selected)
               </label>
               <div className="max-h-32 space-y-1 overflow-y-auto rounded-md border p-2">
                 {documents.map((doc) => (
-                  <label
-                    key={doc.id}
-                    className="flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 text-sm hover:bg-muted/50"
-                  >
+                  <label key={doc.id} className="flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 text-sm hover:bg-muted/50">
                     <div
                       className={`flex h-4 w-4 items-center justify-center rounded border ${
-                        selectedDocs.includes(doc.id)
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-input"
+                        selectedDocs.includes(doc.id) ? "border-primary bg-primary text-primary-foreground" : "border-input"
                       }`}
                       onClick={() => toggleDoc(doc.id)}
                     >
-                      {selectedDocs.includes(doc.id) && (
-                        <Check className="h-3 w-3" />
-                      )}
+                      {selectedDocs.includes(doc.id) && <Check className="h-3 w-3" />}
                     </div>
                     <span className="truncate">{doc.filename}</span>
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {doc.chunk_count} chunks
-                    </span>
+                    <span className="ml-auto text-xs text-muted-foreground">{doc.chunk_count} chunks</span>
                   </label>
                 ))}
               </div>
             </div>
           )}
 
-          <p className="text-xs text-muted-foreground">
-            Expected format:{" "}
-            <code className="rounded bg-muted px-1">
-              {"[{\"question\": \"...\", \"ground_truth\": \"...\"}]"}
-            </code>
-          </p>
-
           {error && <p className="text-sm text-destructive">{error}</p>}
-
-          <Button
-            onClick={handleUpload}
-            disabled={!file || !name.trim() || uploading}
-            className="w-full"
-          >
+          <Button onClick={handleUpload} disabled={!file || !name.trim() || uploading} className="w-full">
             {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Upload Dataset
           </Button>

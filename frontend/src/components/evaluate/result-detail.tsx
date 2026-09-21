@@ -30,13 +30,38 @@ function MetricPill({ name, value }: { name: string; value: number }) {
 export function ResultDetail({ run, onBack }: ResultDetailProps) {
   return (
     <div className="space-y-5">
-      <button
-        onClick={onBack}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
+      <button onClick={onBack}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ChevronLeft className="h-3.5 w-3.5" />
         Back to history
       </button>
+
+      {/* Pipeline config snapshot */}
+      {run.config && Object.keys(run.config).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {run.config.generation && (
+            <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+              model: {(run.config.generation as Record<string, string>).model}
+            </span>
+          )}
+          {run.config.chunking && (
+            <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+              chunk: {(run.config.chunking as Record<string, unknown>).strategy as string}/{(run.config.chunking as Record<string, unknown>).chunk_size as number}
+            </span>
+          )}
+          {run.config.retrieval && (
+            <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+              retrieval: {(run.config.retrieval as Record<string, unknown>).mode as string}
+              {(run.config.retrieval as Record<string, unknown>).reranker_enabled ? " +rerank" : ""}
+            </span>
+          )}
+          {run.document_ids?.length > 0 && (
+            <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+              {run.document_ids.length} doc{run.document_ids.length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Summary metrics */}
       {run.metrics && (
@@ -46,12 +71,10 @@ export function ResultDetail({ run, onBack }: ResultDetailProps) {
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
               </p>
-              <p
-                className={cn(
-                  "mt-2.5 text-3xl font-bold tabular-nums",
-                  value >= 0.85 ? "text-emerald-600" : value >= 0.70 ? "text-amber-500" : "text-red-500"
-                )}
-              >
+              <p className={cn(
+                "mt-2.5 text-3xl font-bold tabular-nums",
+                value >= 0.85 ? "text-emerald-600" : value >= 0.70 ? "text-amber-500" : "text-red-500"
+              )}>
                 {formatScore(value)}
               </p>
             </div>
@@ -61,19 +84,25 @@ export function ResultDetail({ run, onBack }: ResultDetailProps) {
 
       {/* Pass rate */}
       <div className="flex items-center gap-2">
-        <h3 className="text-base font-semibold">
-          Results
-        </h3>
+        <h3 className="text-base font-semibold">Results</h3>
         <span className="text-sm text-muted-foreground">
           {run.pass_count ?? 0}/{run.question_count ?? 0} passed
         </span>
+        {run.scoring_mode && (
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+            run.scoring_mode === "deepeval"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-amber-200 bg-amber-50 text-amber-700"
+          }`}>
+            {run.scoring_mode === "deepeval" ? "DeepEval" : "Heuristic"}
+          </span>
+        )}
       </div>
 
       <ScrollArea className="h-[520px]">
         <div className="space-y-3 pr-4">
           {run.results?.map((result, i) => (
             <div key={i} className="rounded-lg border border-border/50 bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-              {/* Question header */}
               <div className="flex items-start justify-between gap-3 border-b border-border/50 bg-muted/20 px-4 py-3.5">
                 <p className="text-sm font-medium leading-relaxed">
                   <span className="text-muted-foreground mr-2">Q{i + 1}.</span>
@@ -81,43 +110,29 @@ export function ResultDetail({ run, onBack }: ResultDetailProps) {
                 </p>
                 {result.passed ? (
                   <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-emerald-600">
-                    <CheckCircle2 className="h-4 w-4" />
-                    PASS
+                    <CheckCircle2 className="h-4 w-4" /> PASS
                   </span>
                 ) : (
                   <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-red-500">
-                    <XCircle className="h-4 w-4" />
-                    FAIL
+                    <XCircle className="h-4 w-4" /> FAIL
                   </span>
                 )}
               </div>
-
               <div className="space-y-4 px-4 py-3.5 text-sm">
-                {/* Ground truth */}
                 <div>
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Ground Truth
-                  </p>
+                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ground Truth</p>
                   <p className="text-foreground/80 leading-relaxed">{result.ground_truth}</p>
                 </div>
-
-                {/* Generated answer */}
                 <div>
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Generated Answer
-                  </p>
+                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Generated Answer</p>
                   <p className="text-foreground/80 leading-relaxed">{result.generated_answer}</p>
                 </div>
-
-                {/* Failure reason */}
                 {result.failure_reason && (
-                  <div className="rounded-md border border-red-200/50 bg-red-50/40 px-3 py-2.5 shadow-sm">
+                  <div className="rounded-md border border-red-200/50 bg-red-50/40 px-3 py-2.5">
                     <p className="text-xs font-semibold text-red-700 mb-1">Failure Reason</p>
                     <p className="text-xs text-red-700/80">{result.failure_reason}</p>
                   </div>
                 )}
-
-                {/* Retrieved chunks */}
                 <div>
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Retrieved Chunks ({result.retrieved_chunks?.length ?? 0})
@@ -132,8 +147,6 @@ export function ResultDetail({ run, onBack }: ResultDetailProps) {
                     <p className="text-xs text-muted-foreground/70">No chunks retrieved.</p>
                   )}
                 </div>
-
-                {/* Metric pills */}
                 <div className="flex flex-wrap gap-2 pt-2 border-t border-border/50">
                   {Object.entries(result.metrics).map(([key, value]) => (
                     <MetricPill key={key} name={key} value={value} />

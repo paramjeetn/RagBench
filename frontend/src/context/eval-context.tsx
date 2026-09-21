@@ -19,53 +19,39 @@ export function EvalProvider({ children }: { children: React.ReactNode }) {
     setActiveRunState(run);
   }, []);
 
-  // Poll active run
+  // Poll active run while running
   useEffect(() => {
     if (!activeRun || activeRun.status !== "running") {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
+      if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
       return;
     }
-
     pollingRef.current = setInterval(async () => {
       try {
-        const updated = await api.get<EvalRunResponse>(
-          `/api/eval/runs/${activeRun.id}`
-        );
+        const updated = await api.get<EvalRunResponse>(`/api/eval/runs/${activeRun.id}`);
         setActiveRunState(updated);
-
         if (updated.status !== "running" && pollingRef.current) {
-          clearInterval(pollingRef.current);
-          pollingRef.current = null;
+          clearInterval(pollingRef.current); pollingRef.current = null;
         }
       } catch {
-        if (pollingRef.current) {
-          clearInterval(pollingRef.current);
-          pollingRef.current = null;
-        }
+        if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
       }
     }, 2000);
-
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-    };
+    return () => { if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; } };
   }, [activeRun?.id, activeRun?.status]);
 
-  // On mount, check for any running eval
+  // On mount: only resume a running run if it was just started (within last 10 mins).
+  // Don't cross-pollinate across projects — the evaluate page handles loading project-specific runs.
   useEffect(() => {
-    api
-      .get<EvalRunResponse[]>("/api/eval/runs")
+    const TEN_MIN = 10 * 60 * 1000;
+    api.get<EvalRunResponse[]>("/api/eval/runs")
       .then(async (allRuns) => {
-        const running = allRuns.find((r) => r.status === "running");
+        const running = allRuns.find((r) => {
+          if (r.status !== "running") return false;
+          const age = Date.now() - new Date(r.created_at).getTime();
+          return age < TEN_MIN; // only resume very recent runs
+        });
         if (running) {
-          const full = await api.get<EvalRunResponse>(
-            `/api/eval/runs/${running.id}`
-          );
+          const full = await api.get<EvalRunResponse>(`/api/eval/runs/${running.id}`);
           setActiveRunState(full);
         }
       })
