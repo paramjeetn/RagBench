@@ -87,13 +87,33 @@ export default function EvaluatePage() {
     if (activeRun && activeRun.status !== "running") loadRuns();
   }, [activeRun?.status, loadRuns]);
 
+  // Re-fetch pipeline config when settings sheet applies changes (no refresh needed)
+  useEffect(() => {
+    const onConfigUpdated = (e: Event) => {
+      const cfg = (e as CustomEvent<PipelineConfigResponse>).detail;
+      setScoringAvailable(cfg.status.scoring_available);
+      setPipelineConfig(cfg);
+      setRunName(defaultRunName(cfg));
+    };
+    window.addEventListener("ragbench:config-updated", onConfigUpdated);
+    return () => window.removeEventListener("ragbench:config-updated", onConfigUpdated);
+  }, []);
+
   const startRun = async () => {
     if (!selectedDataset || !activeProject) return;
+
+    // Enforce unique run name within this project
+    const trimmed = runName.trim();
+    if (trimmed && runs.some((r) => (r.name ?? "").trim() === trimmed)) {
+      setStartError(`A run named "${trimmed}" already exists. Please choose a different name.`);
+      return;
+    }
+
     setStarting(true); setStartError(null);
     try {
       const run = await api.post<EvalRunResponse>("/api/eval/run", {
         dataset_id: selectedDataset,
-        name: runName.trim() || undefined,
+        name: trimmed || undefined,
         project_id: activeProject.id,
       });
       setActiveRun(run);

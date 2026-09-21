@@ -232,6 +232,8 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
       new Promise((res) => setTimeout(res, 1200)),
     ]);
     setConfig(result as PipelineConfigResponse);
+    // Notify other pages (e.g. Evaluate) that the pipeline config changed
+    window.dispatchEvent(new CustomEvent("ragbench:config-updated", { detail: result }));
 
     if ((result as PipelineConfigResponse).status.reindexing) {
       setSaving(false);
