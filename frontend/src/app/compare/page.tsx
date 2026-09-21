@@ -59,10 +59,14 @@ export default function ComparePage() {
       .finally(() => setLoading(false));
   }, [runAId, runBId]);
 
+  function truncateLabel(label: string, maxLen = 30) {
+    return label.length > maxLen ? label.slice(0, maxLen).trim() + "..." : label;
+  }
+
   const runA = runs.find((r) => r.id === runAId);
   const runB = runs.find((r) => r.id === runBId);
-  const labelA = runA ? runLabel(runA) : "Run A";
-  const labelB = runB ? runLabel(runB) : "Run B";
+  const labelA = runA ? truncateLabel(runLabel(runA)) : "Run A";
+  const labelB = runB ? truncateLabel(runLabel(runB)) : "Run B";
 
   return (
     <div className="space-y-7">
@@ -121,7 +125,7 @@ export default function ComparePage() {
               <SelectContent style={{ border: "2px solid oklch(0.10 0.01 240)", borderRadius: 0 }}>
                 {runs.map((r) => (
                   <SelectItem key={r.id} value={r.id}>
-                    {runLabel(r)}
+                    {truncateLabel(runLabel(r), 45)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -149,7 +153,7 @@ export default function ComparePage() {
               <SelectContent style={{ border: "2px solid oklch(0.10 0.01 240)", borderRadius: 0 }}>
                 {runs.map((r) => (
                   <SelectItem key={r.id} value={r.id}>
-                    {runLabel(r)}
+                    {truncateLabel(runLabel(r), 45)}
                   </SelectItem>
                 ))}
               </SelectContent>
