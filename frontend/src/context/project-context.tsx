@@ -17,18 +17,38 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const [activeProject, setActiveProjectState] = useState<ProjectResponse | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate from localStorage on mount
+  // Hydrate from localStorage on mount, then validate the project still exists in DB.
+  // After `make clean-slate` the DB is wiped but localStorage keeps the stale project —
+  // this causes uploads to use a dead project_id and docs to never appear.
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as ProjectResponse;
-        setActiveProjectState(parsed);
-        // Sync backend active project
-        api.post("/api/projects/active", { project_id: parsed.id }).catch(() => {});
-      } catch {}
-    }
-    setHydrated(true);
+
+    const validate = async () => {
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as ProjectResponse;
+          // Verify the project still exists in the backend
+          const allProjects = await api.get<ProjectResponse[]>("/api/projects/");
+          const stillExists = allProjects.some((p) => p.id === parsed.id);
+          if (stillExists) {
+            setActiveProjectState(parsed);
+            api.post("/api/projects/active", { project_id: parsed.id }).catch(() => {});
+          } else {
+            // DB was wiped — clear stale localStorage entry
+            localStorage.removeItem(STORAGE_KEY);
+          }
+        } catch {
+          // Network error — optimistically keep the stored project but don't crash
+          try {
+            const parsed = JSON.parse(stored) as ProjectResponse;
+            setActiveProjectState(parsed);
+          } catch {}
+        }
+      }
+      setHydrated(true);
+    };
+
+    validate();
   }, []);
 
   const setActiveProject = useCallback((project: ProjectResponse | null) => {
