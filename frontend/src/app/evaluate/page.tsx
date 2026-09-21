@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import {
   Play, Database, XCircle, FolderKanban, FileText, Info, CheckCircle2, AlertTriangle, Cpu,
 } from "lucide-react";
-import { UploadDataset } from "@/components/evaluate/upload-dataset";
 
 function defaultRunName(cfg: PipelineConfigResponse): string {
   const strategy = cfg.chunking.strategy;
@@ -271,7 +270,10 @@ export default function EvaluatePage() {
             {loading ? (
               <div className="h-9 w-64 animate-pulse rounded" style={{ background: "oklch(0.93 0.01 240)" }} />
             ) : datasets.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-2">No datasets yet — upload one →</p>
+              <p className="text-xs text-muted-foreground py-2">
+                No datasets yet —{" "}
+                <a href="/datasets" className="underline font-bold text-primary">go to Datasets page</a>{" "}to upload one.
+              </p>
             ) : (
               <Select value={selectedDataset} onValueChange={(v) => v && setSelectedDataset(v)}>
                 <SelectTrigger className="h-9 w-64" style={{ border: "2px solid oklch(0.10 0.01 240)", borderRadius: 0 }}>
@@ -303,10 +305,6 @@ export default function EvaluatePage() {
             )}
             Run Evaluation
           </motion.button>
-          <UploadDataset
-            onUploaded={(ds) => { setDatasets((prev) => [...prev, ds]); setSelectedDataset(ds.id); }}
-            projectId={activeProject.id}
-          />
         </div>
 
         {/* Scope note */}

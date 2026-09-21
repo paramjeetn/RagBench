@@ -11,6 +11,7 @@ import {
   GitCompareArrows,
   Settings,
   FolderKanban,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/",          label: "Dashboard", icon: LayoutDashboard, color: "#E63946" },
   { href: "/projects",  label: "Projects",  icon: FolderKanban,    color: "#F4C542" },
   { href: "/documents", label: "Documents", icon: FileText,         color: "#2563EB" },
+  { href: "/datasets",  label: "Datasets",  icon: Database,        color: "#E63946" },
   { href: "/chat",      label: "Chat",      icon: MessageSquare,   color: "#E63946" },
   { href: "/evaluate",  label: "Evaluate",  icon: FlaskConical,    color: "#F4C542" },
   { href: "/compare",   label: "Compare",   icon: GitCompareArrows,color: "#2563EB" },
