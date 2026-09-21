@@ -28,6 +28,12 @@ function MetricPill({ name, value }: { name: string; value: number }) {
 }
 
 export function ResultDetail({ run, onBack }: ResultDetailProps) {
+  // Extract config sections with explicit types to avoid rendering `unknown` in JSX
+  type GenCfg = { model: string };
+  type ChunkCfg = { strategy: string; chunk_size: number };
+  type RetCfg = { mode: string; reranker_enabled: boolean };
+  const cfg = run.config as { generation?: GenCfg; chunking?: ChunkCfg; retrieval?: RetCfg } | null;
+
   return (
     <div className="space-y-5">
       <button onClick={onBack}
@@ -37,27 +43,26 @@ export function ResultDetail({ run, onBack }: ResultDetailProps) {
       </button>
 
       {/* Pipeline config snapshot */}
-      {run.config && Object.keys(run.config).length > 0 && (
+      {cfg && Object.keys(cfg).length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {run.config.generation && (
+          {cfg.generation?.model && (
             <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
-              model: {(run.config.generation as Record<string, string>).model}
+              model: {cfg.generation.model}
             </span>
           )}
-          {run.config.chunking && (
+          {cfg.chunking?.strategy && (
             <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
-              chunk: {(run.config.chunking as Record<string, unknown>).strategy as string}/{(run.config.chunking as Record<string, unknown>).chunk_size as number}
+              chunk: {cfg.chunking.strategy}/{cfg.chunking.chunk_size}
             </span>
           )}
-          {run.config.retrieval && (
+          {cfg.retrieval?.mode && (
             <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
-              retrieval: {(run.config.retrieval as Record<string, unknown>).mode as string}
-              {(run.config.retrieval as Record<string, unknown>).reranker_enabled ? " +rerank" : ""}
+              retrieval: {cfg.retrieval.mode}{cfg.retrieval.reranker_enabled ? " +rerank" : ""}
             </span>
           )}
-          {run.document_ids?.length > 0 && (
+          {(run.document_ids?.length ?? 0) > 0 && (
             <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
-              {run.document_ids.length} doc{run.document_ids.length !== 1 ? "s" : ""}
+              {run.document_ids!.length} doc{run.document_ids!.length !== 1 ? "s" : ""}
             </span>
           )}
         </div>
