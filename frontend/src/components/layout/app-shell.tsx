@@ -8,6 +8,7 @@ import { SettingsSheet } from "./settings-sheet";
 import { ChatProvider } from "@/context/chat-context";
 import { EvalProvider } from "@/context/eval-context";
 import { ProjectProvider } from "@/context/project-context";
+import { ProjectBar } from "./project-bar";
 
 const BARE_ROUTES = ["/home"];
 
@@ -63,9 +64,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <Sidebar onOpenSettings={() => setSettingsOpen(true)} />
-          <main className="relative flex-1 overflow-y-auto p-8">
-            <PageTransition>{children}</PageTransition>
-          </main>
+          <div className="relative flex-1 flex flex-col overflow-hidden">
+            {/* Top bar with project selector */}
+            <div
+              className="flex items-center justify-end px-6 py-2 shrink-0"
+              style={{ borderBottom: "2px solid oklch(0.12 0.01 240)" }}
+            >
+              <ProjectBar />
+            </div>
+            <main className="flex-1 overflow-y-auto p-8">
+              <PageTransition>{children}</PageTransition>
+            </main>
+          </div>
           <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
         </div>
       </EvalProvider>

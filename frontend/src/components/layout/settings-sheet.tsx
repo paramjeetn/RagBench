@@ -24,42 +24,22 @@ import type { PipelineConfigResponse, PipelineConfigUpdateRequest } from "@/lib/
 
 const LLM_MODELS: Record<string, { label: string; value: string }[]> = {
   openai: [
-    // GPT-5 family — cheapest first
-    { label: "GPT-5 nano  ·  $0.05/$0.4 per 1M", value: "gpt-5-nano" },
-    { label: "GPT-5 mini  ·  $0.40/$1.6 per 1M", value: "gpt-5-mini" },
-    { label: "GPT-5  ·  $2/$8 per 1M", value: "gpt-5" },
-    { label: "GPT-5 Pro  ·  $6/$24 per 1M", value: "gpt-5-pro" },
-    // GPT-5.4 family
-    { label: "GPT-5.4 nano  ·  $0.20/$1.25 per 1M", value: "gpt-5.4-nano" },
-    { label: "GPT-5.4 mini  ·  $0.75/$4.5 per 1M", value: "gpt-5.4-mini" },
-    { label: "GPT-5.4  ·  $2/$8 per 1M", value: "gpt-5.4" },
-    // GPT-5.6 family (current recommended)
-    { label: "GPT-5.6 Luna  ·  $0.40/$1.6 per 1M", value: "gpt-5.6-luna" },
-    { label: "GPT-5.6 Terra  ·  $1.50/$6 per 1M", value: "gpt-5.6-terra" },
-    { label: "GPT-5.6 Sol  ·  $3/$12 per 1M", value: "gpt-5.6-sol" },
-    // GPT-4.1 family
-    { label: "GPT-4.1 nano  ·  $0.10/$0.4 per 1M", value: "gpt-4.1-nano" },
-    { label: "GPT-4.1 mini  ·  $0.40/$1.6 per 1M", value: "gpt-4.1-mini" },
-    { label: "GPT-4.1  ·  $2/$8 per 1M", value: "gpt-4.1" },
-    // GPT-4o family
-    { label: "GPT-4o mini  ·  $0.15/$0.6 per 1M", value: "gpt-4o-mini" },
-    { label: "GPT-4o  ·  $2.5/$10 per 1M", value: "gpt-4o" },
-    // o-series reasoning
-    { label: "o4-mini (reasoning)  ·  $1.1/$4.4 per 1M", value: "o4-mini" },
-    { label: "o3-mini (reasoning)  ·  $1.1/$4.4 per 1M", value: "o3-mini" },
-    { label: "o3 (reasoning)  ·  $10/$40 per 1M", value: "o3" },
-    { label: "o1-mini (reasoning)  ·  $1.1/$4.4 per 1M", value: "o1-mini" },
-    // Legacy
-    { label: "GPT-3.5 Turbo (legacy)  ·  $0.5/$1.5 per 1M", value: "gpt-3.5-turbo" },
+    { label: "GPT-5 nano", value: "gpt-5-nano" },
+    { label: "GPT-4.1 nano", value: "gpt-4.1-nano" },
+    { label: "GPT-5.4 nano", value: "gpt-5.4-nano" },
+    { label: "GPT-5.6 Luna", value: "gpt-5.6-luna" },
+    { label: "GPT-4.1 mini", value: "gpt-4.1-mini" },
   ],
   anthropic: [
     { label: "Claude 3.5 Haiku", value: "claude-haiku-4-5-20251001" },
     { label: "Claude Sonnet 4.6", value: "claude-sonnet-4-6" },
   ],
   gemini: [
+    { label: "Gemini 2.5 Flash Lite", value: "gemini-2.5-flash-lite" },
+    { label: "Gemini 3.1 Flash Lite", value: "gemini-3.1-flash-lite" },
+    { label: "Gemini 3.5 Flash Lite", value: "gemini-3.5-flash-lite" },
     { label: "Gemini 2.5 Flash", value: "gemini-2.5-flash" },
-    { label: "Gemini 2.0 Flash Lite", value: "gemini-2.0-flash-lite" },
-    { label: "Gemini 2.0 Flash", value: "gemini-2.0-flash" },
+    { label: "Gemini 3 Flash Preview", value: "gemini-3-flash-preview" },
   ],
   ollama: [
     { label: "Llama 3", value: "llama3" },

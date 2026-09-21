@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import Response
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.schemas import ProjectCreateRequest, ProjectResponse
@@ -12,6 +13,10 @@ from database.session import get_db
 from exceptions import ProjectNotFoundError
 
 router = APIRouter(prefix="/api/projects", tags=["Projects"])
+
+
+class SetActiveProjectBody(BaseModel):
+    project_id: str | None = None
 
 
 def _project_to_response(project) -> ProjectResponse:
@@ -39,6 +44,18 @@ async def list_projects(session: AsyncSession = Depends(get_db)):
     """List all projects."""
     projects = await repo.list_projects(session)
     return [_project_to_response(p) for p in projects]
+
+
+@router.post("/active", status_code=200)
+async def set_active_project_endpoint(body: SetActiveProjectBody):
+    """Set the active project for pipeline config scoping."""
+    from config import set_active_project
+    from api.dependencies import reset_query_pipeline, reset_vector_store
+    set_active_project(body.project_id)
+    # Reset pipeline singletons so they pick up the new project's config
+    reset_vector_store()
+    reset_query_pipeline()
+    return {"active_project_id": body.project_id}
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)

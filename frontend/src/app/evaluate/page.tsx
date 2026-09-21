@@ -108,6 +108,19 @@ export default function EvaluatePage() {
     setViewingRun(full);
   };
 
+  const handleDeleteRun = async (run: EvalRunResponse) => {
+    if (!confirm(`Delete eval run "${run.name || run.id.slice(0, 8)}"? This cannot be undone.`)) return;
+    try {
+      const res = await api.del(`/api/eval/runs/${run.id}`);
+      if (res.ok || res.status === 204) {
+        setRuns((prev) => prev.filter((r) => r.id !== run.id));
+        if (activeRun?.id === run.id) setActiveRun(null);
+      }
+    } catch {
+      // silent fail
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -321,7 +334,7 @@ export default function EvaluatePage() {
           <div className="h-6 w-2" style={{ background: "#2563EB" }} />
           <h2 className="text-lg font-black uppercase tracking-widest text-foreground">History</h2>
         </div>
-        <RunHistory runs={runs} onViewRun={handleViewRun} />
+        <RunHistory runs={runs} onViewRun={handleViewRun} onDeleteRun={handleDeleteRun} />
       </motion.div>
     </div>
   );

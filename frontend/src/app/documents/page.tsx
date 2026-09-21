@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "motion/react";
+import { FolderKanban } from "lucide-react";
 import { api } from "@/lib/api";
 import type { DocumentResponse } from "@/lib/types";
 import { UploadZone } from "@/components/documents/upload-zone";
@@ -12,15 +13,14 @@ import { useProjectContext } from "@/context/project-context";
 export default function DocumentsPage() {
   const { activeProject } = useProjectContext();
   const [documents, setDocuments] = useState<DocumentResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [viewDoc, setViewDoc] = useState<DocumentResponse | null>(null);
 
   const loadDocs = useCallback(async () => {
+    if (!activeProject) return;
+    setLoading(true);
     try {
-      const url = activeProject
-        ? `/api/documents/?project_id=${activeProject.id}`
-        : "/api/documents/";
-      const docs = await api.get<DocumentResponse[]>(url);
+      const docs = await api.get<DocumentResponse[]>(`/api/documents/?project_id=${activeProject.id}`);
       setDocuments(docs);
     } catch (err) {
       console.error("Failed to load documents:", err);
@@ -29,7 +29,13 @@ export default function DocumentsPage() {
     }
   }, [activeProject]);
 
-  useEffect(() => { loadDocs(); }, [loadDocs]);
+  useEffect(() => {
+    if (activeProject) {
+      loadDocs();
+    } else {
+      setDocuments([]);
+    }
+  }, [loadDocs, activeProject]);
 
   const handleUploaded = (doc: DocumentResponse) => {
     setDocuments((prev) => [doc, ...prev]);
@@ -55,55 +61,61 @@ export default function DocumentsPage() {
           <div>
             <h1 className="text-4xl font-black uppercase tracking-tight text-foreground">Documents</h1>
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              Upload & manage your RAG pipeline docs
+              {activeProject ? `Project: ${activeProject.name}` : "Select a project to continue"}
             </p>
           </div>
         </div>
       </motion.div>
 
-      {/* Active project badge */}
-      {activeProject && (
+      {/* Guard: no project selected */}
+      {!activeProject ? (
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 px-4 py-2.5"
-          style={{
-            background: "#F4C542",
-            border: "3px solid oklch(0.10 0.01 240)",
-            boxShadow: "4px 4px 0 oklch(0.10 0.01 240)",
-          }}
+          className="flex flex-col items-center justify-center gap-4 py-24"
+          style={{ border: "3px dashed oklch(0.10 0.01 240)" }}
         >
-          <span className="text-xs font-black uppercase tracking-widest text-black">Project:</span>
-          <span className="text-sm font-black text-black">{activeProject.name}</span>
+          <div
+            className="flex h-16 w-16 items-center justify-center"
+            style={{ background: "#F4C542", border: "3px solid oklch(0.10 0.01 240)" }}
+          >
+            <FolderKanban className="h-8 w-8 text-black" />
+          </div>
+          <p className="text-base font-black uppercase tracking-widest text-foreground">No Project Selected</p>
+          <p className="text-xs font-medium text-muted-foreground text-center max-w-xs">
+            Select or create a project from the top-right dropdown to upload and manage documents.
+          </p>
         </motion.div>
-      )}
-
-      {/* Upload zone wrapper */}
-      <div
-        style={{
-          border: "3px solid oklch(0.10 0.01 240)",
-          boxShadow: "6px 6px 0 #2563EB",
-        }}
-      >
-        <UploadZone onUploaded={handleUploaded} projectId={activeProject?.id} />
-      </div>
-
-      {/* Document list */}
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="h-10 w-10 border-4 border-bauhaus-yellow"
-            style={{ borderRadius: 0 }}
-          />
-        </div>
       ) : (
-        <DocumentList
-          documents={documents}
-          onView={setViewDoc}
-          onDelete={handleDelete}
-        />
+        <>
+          {/* Upload zone */}
+          <div
+            style={{
+              border: "3px solid oklch(0.10 0.01 240)",
+              boxShadow: "6px 6px 0 #2563EB",
+            }}
+          >
+            <UploadZone onUploaded={handleUploaded} projectId={activeProject.id} />
+          </div>
+
+          {/* Document list */}
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="h-10 w-10 border-4 border-bauhaus-yellow"
+                style={{ borderRadius: 0 }}
+              />
+            </div>
+          ) : (
+            <DocumentList
+              documents={documents}
+              onView={setViewDoc}
+              onDelete={handleDelete}
+            />
+          )}
+        </>
       )}
 
       <ChunkPreview

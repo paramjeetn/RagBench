@@ -321,17 +321,17 @@ class OllamaLLM:
 
 
 class GeminiLLM:
-    """Google Gemini provider (gemini-2.5-flash, gemini-2.0-flash-lite, etc.)."""
+    """Google Gemini provider (gemini-2.5-flash-lite, gemini-3.5-flash-lite, etc.)."""
 
     COST_MAP = {
-        "gemini-2.5-flash": (0.15, 0.60),
-        "gemini-2.0-flash-lite": (0.075, 0.30),
-        "gemini-2.0-flash": (0.10, 0.40),
-        "gemini-1.5-flash": (0.075, 0.30),
-        "gemini-1.5-pro": (1.25, 5.00),
+        "gemini-2.5-flash-lite": (0.10, 0.40),
+        "gemini-3.1-flash-lite": (0.25, 1.50),
+        "gemini-3.5-flash-lite": (0.30, 2.50),
+        "gemini-2.5-flash": (0.30, 2.50),
+        "gemini-3-flash-preview": (0.50, 3.00),
     }
 
-    def __init__(self, api_key: str, model: str = "gemini-2.5-flash"):
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite"):
         from google import genai
 
         self.client = genai.Client(api_key=api_key)

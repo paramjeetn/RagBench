@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import { FolderKanban } from "lucide-react";
 import { api } from "@/lib/api";
 import type { DocumentResponse } from "@/lib/types";
 import { useChatContext } from "@/context/chat-context";
+import { useProjectContext } from "@/context/project-context";
 import { MessageList } from "@/components/chat/message-list";
 import { MessageInput } from "@/components/chat/message-input";
 import { Trash2, FileText } from "lucide-react";
@@ -14,12 +16,20 @@ const CHIP_COLORS = ["#E63946", "#F4C542", "#2563EB"];
 
 export default function ChatPage() {
   const { messages, streaming, sendMessage, clearMessages } = useChatContext();
+  const { activeProject } = useProjectContext();
   const [documents, setDocuments] = useState<DocumentResponse[]>([]);
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
 
   useEffect(() => {
-    api.get<DocumentResponse[]>("/api/documents/").then(setDocuments).catch(() => {});
-  }, []);
+    if (!activeProject) {
+      setDocuments([]);
+      setSelectedDocIds([]);
+      return;
+    }
+    api.get<DocumentResponse[]>(`/api/documents/?project_id=${activeProject.id}`)
+      .then(setDocuments)
+      .catch(() => {});
+  }, [activeProject]);
 
   const toggleDoc = (id: string) => {
     setSelectedDocIds((prev) =>
@@ -42,7 +52,7 @@ export default function ChatPage() {
           <div>
             <h1 className="text-4xl font-black uppercase tracking-tight text-foreground">Chat</h1>
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              Query your ingested documents
+              {activeProject ? `Project: ${activeProject.name}` : "Select a project to continue"}
             </p>
           </div>
         </div>
@@ -66,63 +76,85 @@ export default function ChatPage() {
         )}
       </motion.div>
 
-      {/* Document filter chips */}
-      {documents.length > 0 && (
+      {/* Guard: no project */}
+      {!activeProject ? (
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex shrink-0 flex-wrap gap-2 pb-4 pt-3"
-          style={{ borderBottom: "2px solid oklch(0.88 0.01 240)" }}
+          className="flex flex-1 flex-col items-center justify-center gap-4"
         >
-          {documents.map((doc, i) => {
-            const active = selectedDocIds.includes(doc.id);
-            const color = CHIP_COLORS[i % CHIP_COLORS.length];
-            const isYellow = color === "#F4C542";
-            return (
-              <button
-                key={doc.id}
-                onClick={() => toggleDoc(doc.id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-all duration-150"
-                style={{
-                  background: active ? color : "white",
-                  color: active ? (isYellow ? "oklch(0.10 0.01 240)" : "white") : "oklch(0.10 0.01 240)",
-                  border: `2px solid ${color}`,
-                  boxShadow: active ? `3px 3px 0 oklch(0.10 0.01 240)` : "none",
-                  borderRadius: 0,
-                }}
-              >
-                <FileText className="h-3 w-3" />
-                {doc.filename.length > 16 ? doc.filename.slice(0, 16) + "…" : doc.filename}
-              </button>
-            );
-          })}
-          {selectedDocIds.length > 0 && (
-            <button
-              onClick={() => setSelectedDocIds([])}
-              className="px-2 py-1.5 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
-            >
-              ✕ Clear
-            </button>
-          )}
+          <div
+            className="flex h-16 w-16 items-center justify-center"
+            style={{ background: "#F4C542", border: "3px solid oklch(0.10 0.01 240)" }}
+          >
+            <FolderKanban className="h-8 w-8 text-black" />
+          </div>
+          <p className="text-base font-black uppercase tracking-widest text-foreground">No Project Selected</p>
+          <p className="text-xs font-medium text-muted-foreground text-center max-w-xs">
+            Select a project from the top-right to chat with its documents.
+          </p>
         </motion.div>
+      ) : (
+        <>
+          {/* Document filter chips */}
+          {documents.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="flex shrink-0 flex-wrap gap-2 pb-4 pt-3"
+              style={{ borderBottom: "2px solid oklch(0.88 0.01 240)" }}
+            >
+              {documents.map((doc, i) => {
+                const active = selectedDocIds.includes(doc.id);
+                const color = CHIP_COLORS[i % CHIP_COLORS.length];
+                const isYellow = color === "#F4C542";
+                return (
+                  <button
+                    key={doc.id}
+                    onClick={() => toggleDoc(doc.id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-all duration-150"
+                    style={{
+                      background: active ? color : "white",
+                      color: active ? (isYellow ? "oklch(0.10 0.01 240)" : "white") : "oklch(0.10 0.01 240)",
+                      border: `2px solid ${color}`,
+                      boxShadow: active ? `3px 3px 0 oklch(0.10 0.01 240)` : "none",
+                      borderRadius: 0,
+                    }}
+                  >
+                    <FileText className="h-3 w-3" />
+                    {doc.filename.length > 16 ? doc.filename.slice(0, 16) + "…" : doc.filename}
+                  </button>
+                );
+              })}
+              {selectedDocIds.length > 0 && (
+                <button
+                  onClick={() => setSelectedDocIds([])}
+                  className="px-2 py-1.5 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ✕ Clear
+                </button>
+              )}
+            </motion.div>
+          )}
+
+          {/* Messages */}
+          <div className="min-h-0 flex-1 overflow-y-auto pb-24 pr-1">
+            <MessageList messages={messages} />
+          </div>
+
+          {/* Floating input */}
+          <div
+            className="absolute bottom-0 left-0 right-0 bg-background pt-4 pb-1"
+            style={{ borderTop: "3px solid oklch(0.10 0.01 240)" }}
+          >
+            <MessageInput
+              onSend={(q) => sendMessage(q, selectedDocIds)}
+              disabled={streaming}
+            />
+          </div>
+        </>
       )}
-
-      {/* Messages */}
-      <div className="min-h-0 flex-1 overflow-y-auto pb-24 pr-1">
-        <MessageList messages={messages} />
-      </div>
-
-      {/* Floating input */}
-      <div
-        className="absolute bottom-0 left-0 right-0 bg-background pt-4 pb-1"
-        style={{ borderTop: "3px solid oklch(0.10 0.01 240)" }}
-      >
-        <MessageInput
-          onSend={(q) => sendMessage(q, selectedDocIds)}
-          disabled={streaming}
-        />
-      </div>
     </div>
   );
 }

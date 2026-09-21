@@ -74,7 +74,7 @@ class RetrievalConfig(BaseModel):
 
 
 class GenerationConfig(BaseModel):
-    model: str = "gemini-2.0-flash"
+    model: str = "gemini-2.5-flash-lite"
 
 
 # Maps (provider, model) → embedding dimension. Used to auto-set dimension
@@ -111,28 +111,50 @@ def get_settings() -> Settings:
     return Settings()
 
 
-# Mutable pipeline config (not cached)
-_pipeline_config = PipelineConfig()
+# Mutable pipeline config (not cached) — stored per project_id
+# Key: project_id (str UUID) or "__default__" for no project
+_pipeline_configs: dict[str, PipelineConfig] = {}
+_active_project_id: str | None = None
+
+
+def set_active_project(project_id: str | None) -> None:
+    """Set the globally active project. Called when switching projects."""
+    global _active_project_id
+    _active_project_id = project_id
+
+
+def get_active_project() -> str | None:
+    return _active_project_id
+
+
+def _config_key() -> str:
+    return _active_project_id or "__default__"
 
 
 def get_pipeline_config() -> PipelineConfig:
-    return _pipeline_config
+    key = _config_key()
+    if key not in _pipeline_configs:
+        _pipeline_configs[key] = PipelineConfig()
+    return _pipeline_configs[key]
 
 
 def get_collection_name(config: PipelineConfig | None = None) -> str:
     """Build a Qdrant collection name scoped to chunking + embedding config."""
     if config is None:
-        config = _pipeline_config
+        config = get_pipeline_config()
     c = config.chunking
     e = config.embedding
-    return f"docs_{c.strategy.value}_{c.chunk_size}_{c.overlap}_{e.provider.value}_{e.dimension}"
+    prefix = _config_key().replace("-", "")[:8]
+    return f"docs_{prefix}_{c.strategy.value}_{c.chunk_size}_{c.overlap}_{e.provider.value}_{e.dimension}"
 
 
 def update_pipeline_config(updates: dict) -> PipelineConfig:
-    global _pipeline_config
-    current = _pipeline_config.model_dump()
+    key = _config_key()
+    if key not in _pipeline_configs:
+        _pipeline_configs[key] = PipelineConfig()
+    current = _pipeline_configs[key].model_dump()
     for section, values in updates.items():
         if section in current and isinstance(values, dict):
             current[section].update(values)
-    _pipeline_config = PipelineConfig(**current)
-    return _pipeline_config
+    _pipeline_configs[key] = PipelineConfig(**current)
+    return _pipeline_configs[key]

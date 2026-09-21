@@ -278,3 +278,22 @@ async def get_eval_result_chunks(
     if chunks is None:
         raise EvalResultNotFoundError()
     return chunks
+
+
+@router.delete("/runs/{run_id}", status_code=204)
+async def delete_eval_run(
+    run_id: str,
+    session: AsyncSession = Depends(get_db),
+):
+    """Delete an evaluation run and all its results. Works even if status is 'running'."""
+    from sqlalchemy import delete as sql_delete
+    from database.models import EvalResult
+
+    run = await session.get(EvalRun, UUID(run_id))
+    if run is None:
+        raise EvalRunNotFoundError()
+
+    # Delete results first (cascade should handle it, but be explicit)
+    await session.execute(sql_delete(EvalResult).where(EvalResult.run_id == UUID(run_id)))
+    await session.delete(run)
+    await session.commit()

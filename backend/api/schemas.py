@@ -17,6 +17,10 @@ class ProjectCreateRequest(BaseModel):
     description: str | None = None
 
 
+class SetActiveProjectRequest(BaseModel):
+    project_id: str | None = None
+
+
 class ProjectResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

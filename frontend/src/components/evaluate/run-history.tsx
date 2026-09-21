@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Loader2, ClipboardList } from "lucide-react";
+import { Eye, Loader2, ClipboardList, Trash2 } from "lucide-react";
 import type { EvalRunResponse } from "@/lib/types";
 import { runLabel, formatScore } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 interface RunHistoryProps {
   runs: EvalRunResponse[];
   onViewRun: (run: EvalRunResponse) => void;
+  onDeleteRun?: (run: EvalRunResponse) => void;
 }
 
 function ScoreChip({ score }: { score: number }) {
@@ -26,7 +27,7 @@ function ScoreChip({ score }: { score: number }) {
   );
 }
 
-export function RunHistory({ runs, onViewRun }: RunHistoryProps) {
+export function RunHistory({ runs, onViewRun, onDeleteRun }: RunHistoryProps) {
   if (runs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-12 text-center">
@@ -40,7 +41,7 @@ export function RunHistory({ runs, onViewRun }: RunHistoryProps) {
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
       {/* Header */}
-      <div className="grid grid-cols-[1fr_140px_100px_80px_80px_90px_80px_48px] gap-3 border-b bg-muted/30 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="grid grid-cols-[1fr_140px_100px_80px_80px_90px_80px_48px_48px] gap-3 border-b bg-muted/30 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         <span>Run</span>
         <span>Dataset</span>
         <span>Status</span>
@@ -48,6 +49,7 @@ export function RunHistory({ runs, onViewRun }: RunHistoryProps) {
         <span>Pass rate</span>
         <span>Scoring</span>
         <span>Date</span>
+        <span />
         <span />
       </div>
 
@@ -62,7 +64,7 @@ export function RunHistory({ runs, onViewRun }: RunHistoryProps) {
           return (
             <div
               key={run.id}
-              className="grid grid-cols-[1fr_140px_100px_80px_80px_90px_80px_48px] items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/20"
+              className="grid grid-cols-[1fr_140px_100px_80px_80px_90px_80px_48px_48px] items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/20"
             >
               <span className="font-medium truncate">{runLabel(run)}</span>
               <span className="truncate text-muted-foreground text-xs">{run.dataset_name ?? run.dataset_id}</span>
@@ -118,6 +120,17 @@ export function RunHistory({ runs, onViewRun }: RunHistoryProps) {
                   disabled={run.status !== "completed"}
                 >
                   <Eye className="h-3.5 w-3.5" />
+                </Button>
+              </span>
+              <span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  onClick={() => onDeleteRun?.(run)}
+                  title="Delete run"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </span>
             </div>
