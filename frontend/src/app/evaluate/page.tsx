@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import type { DatasetSummaryResponse, DocumentResponse, EvalRunResponse, PipelineConfigResponse } from "@/lib/types";
+import { runLabel } from "@/lib/utils";
 import { useEvalContext } from "@/context/eval-context";
 import { useProjectContext } from "@/context/project-context";
 import { RunHistory } from "@/components/evaluate/run-history";
@@ -132,7 +133,7 @@ export default function EvaluatePage() {
   };
 
   const handleDeleteRun = async (run: EvalRunResponse) => {
-    if (!confirm(`Delete eval run "${run.name || run.id.slice(0, 8)}"?`)) return;
+    if (!confirm(`Delete eval run "${runLabel(run)}"?`)) return;
     try {
       const res = await api.del(`/api/eval/runs/${run.id}`);
       if (res.ok || res.status === 204) {
